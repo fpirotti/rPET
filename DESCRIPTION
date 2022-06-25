@@ -1,11 +1,36 @@
 Package: rPET
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Calculates Physiological Equivalent Temperature (PET)
+Version: 0.1.1
+Authors@R: 
+    c(person(given = "Francesco",
+             family = "Pirotti",
+             role = c("cre", "aut"),
+             email = "francesco.pirotti@unipd.it",
+             comment = c(ORCID = "0000-0002-4796-6406") ) )
+Maintainer: Francesco Pirotti <francesco.pirotti@unipd.it>
+Description: Calculates Physiological Equivalent Temperature (PET) adapted from
+          Edouard Walther (AREP, France) and Quentin Goestchel (ENS Paris-Saclay, France)
+          based on: Peter Hoeppe s PET fortran code, from the VDI Norm 3787, Blatt 2
+          and on : Djordje Spasic s python code downloaded on github:
+          https://github.com/stgeorges/ladybug/commit/b0c2ea970252b62d22bf0e35d739db7f385a3f26
+          the reference publication can be found on ResearchGate https://www.researchgate.net/publication/324168880_The_PET_comfort_index_Questioning_the_model
+          (also available on Elsevier https://www.sciencedirect.com/science/article/pii/S0360132318301896 ).
+License: GPL (>= 3)
+Depends: R (>= 3.5.0) 
+Date: 2022-06-15
+Language: en-US
 Encoding: UTF-8
-LazyData: true
+LazyData: true   
+URL: https://github.com/fpirotti/rPET  
+BugReports: https://github.com/fpirotti/rPET/issues
+RoxygenNote: 7.1.1
+Imports: 
+    tools,
+    R.utils,
+    utils,
+    stats
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
