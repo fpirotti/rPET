@@ -4,20 +4,27 @@
 \alias{PETcorrected}
 \title{Calculate PET}
 \usage{
-PETcorrected(Tair, Tmrt, v_air, pvap, M_activity, icl)
+PETcorrected(
+  Tair = 21,
+  Tmrt = 21,
+  v_air = 0.1,
+  pvap = 21,
+  M_activity = 80,
+  icl = 0.9
+)
 }
 \arguments{
-\item{Tair}{numeric DEFAULT 21}
+\item{Tair}{numeric, air temperature in degrees celsius DEFAULT 21}
 
 \item{Tmrt}{numeric DEFAULT 21}
 
-\item{v_air}{numeric DEFAULT 0.1}
+\item{v_air}{numeric, air speed meters per second DEFAULT 0.1}
 
-\item{pvap}{numeric DEFAULT 21}
+\item{pvap}{numeric, vapour pressure as relative umidity (\%) DEFAULT 21}
 
 \item{M_activity}{numeric DEFAULT 80}
 
-\item{icl}{numeric DEFAULT 0.9}
+\item{icl}{numeric Clothing level DEFAULT 0.9}
 }
 \value{
 PET value
@@ -26,5 +33,5 @@ PET value
 Calculate PET
 }
 \examples{
-PETcorrected(1,2)
+PETcorrected(21,21,0.1,21,80,0.9)
 }
