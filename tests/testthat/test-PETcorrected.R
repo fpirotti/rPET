@@ -6,6 +6,6 @@ test_that("PET works", {
   v_air<-0.1
   pvap<-21. #Imposed value of Pvap
 
-  pet<- rPET::PETcorrected(Tair, Tmrt, v_air, pvap, M_activity, icl )
+  pet <- rPET::PETcorrected(Tair, Tmrt, v_air, pvap, M_activity, icl )
   expect_equal(2 * 2, 4)
 })

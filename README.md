@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# rPET
+# rPET - Physiological Equivalent Temperature
 
 <!-- badges: start -->
 
@@ -19,6 +19,8 @@ the reference publication can be found on ResearchGate
 <https://www.researchgate.net/publication/324168880_The_PET_comfort_index_Questioning_the_model>
 (also available on Elsevier
 <https://www.sciencedirect.com/science/article/pii/S0360132318301896> ).
+
+See also <https://comfort.cbe.berkeley.edu/>
 
 ## Installation
 

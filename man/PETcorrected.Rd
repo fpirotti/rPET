@@ -14,24 +14,60 @@ PETcorrected(
 )
 }
 \arguments{
-\item{Tair}{numeric, air temperature in degrees celsius DEFAULT 21}
+\item{Tair}{numeric, air temperature in degrees celsius DEFAULT=21}
 
-\item{Tmrt}{numeric DEFAULT 21}
+\item{Tmrt}{numeric, Mean radiant temperature in degrees celsius DEFAULT=21}
 
-\item{v_air}{numeric, air speed meters per second DEFAULT 0.1}
+\item{v_air}{numeric, air speed meters per second DEFAULT=0.1}
 
-\item{pvap}{numeric, vapour pressure as relative umidity (\%) DEFAULT 21}
+\item{pvap}{numeric, vapour pressure as relative umidity (\%) DEFAULT=21}
 
-\item{M_activity}{numeric DEFAULT 80}
+\item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see
 
-\item{icl}{numeric Clothing level DEFAULT 0.9}
+     https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate
+
+     Below some values (met) - (1 met = 58.2 W/m² )
+
+  Sleeping: 0.7
+
+  Reclining: 0.8
+
+  Seated, quiet, Reading, seated, Writing: 1.0
+
+  Typing: 1.1
+
+  Standing, relaxed,  seated: 1.2
+
+  Walking slow: 1.4
+
+  Driving a car: 1.5
+
+  Walking medium speed: 1.7
+
+  Walking 2mph (3.2km/h): 2.0
+
+  Light machine work: 2.2
+
+  Walking 3mph (4.8km/h): 2.6
+
+  House cleaning: 2.7
+
+  Driving, heavy vehicle: 3.2
+
+  Dancing: 3.4
+
+  Walking 4mph (6.4km/h): 3.8
+
+  Heavy machine work: 4.0}
+
+\item{icl}{numeric, Clothing level DEFAULT 0.9}
 }
 \value{
 PET value
 }
 \description{
-Calculate PET
+Calculate PET, Physiological Equivalent Temperature, check also https://comfort.cbe.berkeley.edu/
 }
 \examples{
-PETcorrected(21,21,0.1,21,80,0.9)
+PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
 }
