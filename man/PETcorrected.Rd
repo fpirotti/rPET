@@ -32,21 +32,21 @@ PETcorrected(
 
   Reclining: 0.8
 
-  Seated, quiet, Reading, seated, Writing: 1.0
+  Seated, quiet, Reading, seated, Writing: 1.0 (58.2 W/m²)
 
-  Typing: 1.1
+  Typing: 1.1 (64 W/m²)
 
-  Standing, relaxed,  seated: 1.2
+  Standing, relaxed,  seated: 1.2 (70 W/m²)
 
-  Walking slow: 1.4
+  Walking slow: 1.4  (81 W/m²)
 
-  Driving a car: 1.5
+  Driving a car: 1.5  (87 W/m²)
 
-  Walking medium speed: 1.7
+  Walking medium speed: 1.7  (99 W/m²)
 
-  Walking 2mph (3.2km/h): 2.0
+  Walking 2mph (3.2km/h): 2.0  (116 W/m²)
 
-  Light machine work: 2.2
+  Light machine work: 2.2  (128 W/m²)
 
   Walking 3mph (4.8km/h): 2.6
 

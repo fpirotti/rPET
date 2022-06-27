@@ -1,0 +1,36 @@
+---
+title: "Example using temperature raster"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example using temperature raster}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rPET)
+library(terra)
+library(viridis)
+rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction )
+terra::plot(rast.gap, col=viridis::turbo(n=12), main="GAP Fraction Villa Bolasco" )
+```
+
+```{r read_data_pg}
+# library(RPostgreSQL) 
+fe <- file.exists("/archivio/shared/geodati/20210722_villabolasco_VARCITIES/447_point cloud_miniVUX-3_RAW+clipped.laz")
+
+if(!fe){
+  warning("File with point cloud does not exist")
+  stop()
+}
+## creating coordinates of 
+
+
+```

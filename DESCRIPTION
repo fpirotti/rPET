@@ -26,8 +26,10 @@ URL: https://github.com/fpirotti/rPET
 BugReports: https://github.com/fpirotti/rPET/issues
 RoxygenNote: 7.1.1
 Imports: 
-    tools,
-    R.utils,
+    tools, 
+    terra,
+    viridis,
+    codetools,
     utils,
     stats
 Suggests: 
