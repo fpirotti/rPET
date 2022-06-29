@@ -20,17 +20,44 @@ library(terra)
 library(viridis)
 rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction )
 terra::plot(rast.gap, col=viridis::turbo(n=12), main="GAP Fraction Villa Bolasco" )
+
+rast.gap <- terra::rast( "")
+terra::plot(rast.gap, col=viridis::turbo(n=12), main="GAP Fraction Villa Bolasco" )
+
 ```
 
 ```{r read_data_pg}
 # library(RPostgreSQL) 
-fe <- file.exists("/archivio/shared/geodati/20210722_villabolasco_VARCITIES/447_point cloud_miniVUX-3_RAW+clipped.laz")
+sftw <- "/archivio/software/LAStools/LASlib/example/lasPhotoCamSIM"
+system(sftw, intern = T)
+
+lazfile <- '/archivio/shared/geodati/20210722_villabolasco_VARCITIES/miniVUX3_thinned2.laz'
+fe <- file.exists(lazfile)
 
 if(!fe){
   warning("File with point cloud does not exist")
   stop()
 }
+
+
+fe <- file.exists(sftw)
+
+if(!fe){
+  warning("LASPhotoCamSIM does not exist, check https://github.com/fpirotti/lasPhotoCamSIM")
+  stop()
+}
+
+points <- terra::xyFromCell(rast.gap, terra::cells(rast.gap))
+points.z <- terra::extract(terra::rast( rPET::DATASET.bolasco$dtm ), points)
 ## creating coordinates of 
+
+write.table(data.frame(cbind( terra::cells(rast.gap), points, points.z)), "tmp/coords.csv", row.names = F, col.names = c("id", "X", "Y", "Z"))
+
+locs <- file.path( getwd(), "tmp/coords.csv")
+cmd <- sprintf("%s -i \"%s\"  -loc \"%s\" -zCam 1.5 -zenCut 89 -orast 180", sftw, lazfile, locs  )
+system(cmd)
+
+
 
 
 ```
