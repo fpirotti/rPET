@@ -1,51 +1,34 @@
-#' Calculate PET
+#'Calculate PET
 #'
-#' @description Calculate PET, Physiological Equivalent Temperature, check also https://comfort.cbe.berkeley.edu/
+#'@description Calculate PET, Physiological Equivalent Temperature, check also https://comfort.cbe.berkeley.edu/
 #'
-#' @param Tair numeric, air temperature in degrees celsius DEFAULT=21
-#' @param Tmrt numeric, Mean radiant temperature in degrees celsius DEFAULT=21
-#' @param v_air numeric, air speed meters per second DEFAULT=0.1
-#' @param pvap numeric, vapour pressure as relative umidity (\%) DEFAULT=21
-#' @param M_activity numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see
+#'@param Tair numeric, air temperature in degrees celsius, DEFAULT=21
+#'@param Tmrt numeric, Mean radiant temperature in degrees celsius, DEFAULT=21
+#'@param v_air numeric, air speed meters per second, DEFAULT=0.1
+#'@param pvap numeric, vapour pressure as relative umidity in percentage, DEFAULT=21
+#'@param M_activity numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see
+#'    [https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate](https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate)
 #'
-#'      https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate
+#'Below some values (met) - (1 met = 58.2 W/m² )
 #'
-#'      Below some values (met) - (1 met = 58.2 W/m² )
+#' * Sleeping: 0.7 met,  (41 W/m²)
+#' * Reclining: 0.8 met, (47 W/m²)
+#' * Seated, quiet, Reading, seated, Writing: 1.0 (58.2 W/m²)
+#' * Typing: 1.1 met, (64 W/m²)
+#' * Standing, relaxed,  seated: 1.2 (70 W/m²)
+#' * Walking slow: 1.4 met,  (81 W/m²)
+#' * Driving a car: 1.5 met,  (87 W/m²)
+#' * Walking medium speed: 1.7 met,  (99 W/m²)
+#' * Walking 2mph (3.2km/h): 2.0 met,  (116 W/m²)
+#' * Light machine work: 2.2 met,  (128 W/m²)
+#' * Walking 3mph (4.8km/h): 2.6 met,  (151 W/m²)
+#' * House cleaning: 2.7 met,  (157 W/m²)
+#' * Driving, heavy vehicle: 3.2 met,  (186 W/m²)
+#' * Dancing: 3.4 met,  (198 W/m²)
+#' * Walking 4mph (6.4km/h): 3.8 met,  (221 W/m²)
+#' * Heavy machine work: 4.0 met,  (233 W/m²)
 #'
-#'   Sleeping: 0.7
-#'
-#'   Reclining: 0.8
-#'
-#'   Seated, quiet, Reading, seated, Writing: 1.0 (58.2 W/m²)
-#'
-#'   Typing: 1.1 (64 W/m²)
-#'
-#'   Standing, relaxed,  seated: 1.2 (70 W/m²)
-#'
-#'   Walking slow: 1.4  (81 W/m²)
-#'
-#'   Driving a car: 1.5  (87 W/m²)
-#'
-#'   Walking medium speed: 1.7  (99 W/m²)
-#'
-#'   Walking 2mph (3.2km/h): 2.0  (116 W/m²)
-#'
-#'   Light machine work: 2.2  (128 W/m²)
-#'
-#'   Walking 3mph (4.8km/h): 2.6
-#'
-#'   House cleaning: 2.7
-#'
-#'   Driving, heavy vehicle: 3.2
-#'
-#'   Dancing: 3.4
-#'
-#'   Walking 4mph (6.4km/h): 3.8
-#'
-#'   Heavy machine work: 4.0
-#'
-#'
-#' @param icl numeric, Clothing level DEFAULT 0.9
+#' @param icl numeric, Clothing level, DEFAULT 0.9
 #'
 #' @return PET value
 #' @export
