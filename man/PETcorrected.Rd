@@ -54,5 +54,9 @@ PET value
 Calculate PET, Physiological Equivalent Temperature, check also https://comfort.cbe.berkeley.edu/
 }
 \examples{
+#Tmrt (mean radiant temperature - see )
+Tair <- c(10+(1:100)/5)
+Tglobe <- 21
+
 PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
 }

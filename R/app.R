@@ -1,56 +1,456 @@
-library(shiny)
-library(shinyWidgets)
-require(scatterplot3d)
-require(plotrix)
-require(insol)
+#' solarApp
+#'
+#' @importFrom magrittr "%>%"
+#' @return a shiny application
+#' @export
+#'
+#' @examples
+#' #rPET::solarApp()
+solarApp <- function() {
+  requireNamespace("terra", quietly = TRUE)
+  requireNamespace("plotrix", quietly = TRUE)
+  requireNamespace("magrittr", quietly = TRUE)
+  requireNamespace("RPostgreSQL", quietly = TRUE)
+  options(digits = 12)
+  options(rgl.useNULL = TRUE)
+  rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction)
+  dtm <- terra::rast(rPET::DATASET.bolasco$dtm)
+  dsm <- raster::raster(terra::rast(rPET::DATASET.bolasco$dsm))
+  rast.chm <- terra::rast(rPET::DATASET.bolasco$chm)
 
-myApp <- function(...) {
 
-  options(digits=12)
 
-  ui <- shiny::fluidPage(
-    shiny::sidebarLayout(
-      shiny::sidebarPanel(
-        shinyWidgets::airDatepickerInput("bins",
-                                         "Date and Time:",
-                                         timepicker=T),
-        shiny::numericInput("long", label = "Longitude", min = -180, max=180, value=10),
-        shiny::numericInput("lat", label = "Latitude", min = -90, max=90, value = 46)
-      ),
+  tryCatch({
+    drv <- DBI::dbDriver("PostgreSQL")
+    con  <- RPostgreSQL::dbConnect(drv,
+                        dbname = "bolasco", user="marika.dagostini",
+                        host="postgis.docker", password="marika72Master")
+    print("Database Connected!")
+  },
+  error=function(cond) {
+    print("Unable to connect to Database.")
+  })
 
-      # Show a plot of the generated distribution
-      shiny::mainPanel(
-        shiny::plotOutput("distPlot")
+  tallVegetationMask <- NULL
+  # cellids<-terra::cells(rast.gap)
+  #mm <- leaflet::leaflet()  %>% leaflet::addTiles()
+  # cls <- terra::cellFromXY(dsm, xyz@data[,1:2])
+  # df <- data.frame(ids = cls, Z=xyz@data[,3])
+  # final.dsm <- df %>% dplyr::group_by(ids)  %>% dplyr::summarise(z=max(Z))
+  # dsm[final.dsm$ids] <- final.dsm$z
+  # plot(dsm)
+  # terra::writeRaster(dsm, "data-raw/bolasco_dsm_1m.tif")
+  #And convert it to a matrix:
+  elmat <- rayshader::raster_to_matrix(dsm)
+
+
+  bds <-
+    raster::extent(
+      raster::projectExtent(
+        dsm,
+        "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
       )
     )
-  )
+
+
+  leaflet.object <-
+    leaflet::leaflet() %>%
+    leaflet::addTiles(group = "OpenStreetMap") %>%
+    leaflet.extras::addBingTiles(
+      "Satellite BING maps",
+      group = "BING",
+      apikey = "AjvjPYuoA4IgNeooKvodDLcxbVL1F8RdIxXUeYsb6PgiVapURz_PbbWvOxVKmNps",
+      imagerySet = c("Aerial")
+    ) %>%
+    ## F.PIROTTI
+    leaflet::addTiles(urlTemplate  = '', group = "Blank") %>%
+    leaflet::addLayersControl(
+      position = ("topright"),
+      baseGroups = c("Blank", "OpenStreetMap", "BING"),
+      overlayGroups = c("ShadowMap", "ShadowMapTotal"),
+      leaflet::layersControlOptions(autoZIndex = F, collapsed = F)
+    ) %>%
+
+    leaflet::showGroup("BING")   %>%
+
+    leaflet::showGroup("ShadowMap")   %>%
+    leaflet::addScaleBar("bottomright") %>%
+    leaflet::addMiniMap(tiles = "OpenStreetMap",
+                        toggleDisplay = TRUE,
+                        position = "topright") %>%
+    htmlwidgets::onRender(
+      "
+    function(el, x) {
+      myMap = this;
+      Shiny.setInputValue('leafletRendered',true, {priority: \"event\"});
+
+    }"
+    ) %>%
+    leaflet::addLegend(
+      colors =  c(
+          "#30123BFF",
+          "#4686FBFF",
+          "#1AE4B6FF",
+          "#A2FC3CFF",
+          "#FABA39FF",
+          "#E4460AFF",
+          "#7A0403FF"
+        ) ,
+      title = "Shadow %",
+      labels = sprintf("%.2f",  (1 - ((1:7) / 7)) ),
+      opacity = 1,
+      position = "topleft",
+      layerId = "myLegend"
+    ) %>%
+
+    leaflet::setView(lng = 11.970140, lat = 46, zoom = 12)  %>%
+    leafem::addMouseCoordinates() %>%
+
+    leaflet::fitBounds(bds@xmin, bds@ymin, bds@xmax, bds@ymax)
+
+
+  M_PI <- pi
+
+  deg2rad <- function(x) {
+    return(x * (M_PI / 180.0))
+
+  }
+
+  rad2deg <- function(x) {
+    return(x * (180.0 / M_PI))
+
+  }
+  pos2image <- function(zenith,
+                        azimuth ,
+                        type = "eqa",
+                        size = 180) {
+    M_PI <- pi
+    zenith <- deg2rad(zenith)
+    azimuth <- deg2rad(azimuth)
+    if (type == "eqa") {
+      # equisolid (equal area)
+      x = (sin(zenith / 2.0) * cos(azimuth)) / sin(M_PI / 4.0)
+
+      y = (sin(zenith / 2.0) * sin(azimuth)) / sin(M_PI / 4.0)
+
+    } else  if (type == "ort") {
+      # orthographic
+      x = (sin(zenith)  * cos(azimuth))
+
+      y = (sin(zenith)  * sin(azimuth))
+
+    } else  if (type == "eqd") {
+      # equidistant
+      x =   (zenith * cos(azimuth)) / (M_PI / 2.0)
+
+      y =   (zenith * sin(azimuth)) / (M_PI / 2.0)
+
+    } else  if (type == "str") {
+      # stereografic
+      x = (tan(zenith / 2.0) * 2.0 * cos(azimuth)) / (tan(M_PI / 4.0) *
+                                                        2.0)
+
+      y = (tan(zenith / 2.0) * 2.0 * sin(azimuth)) / (tan(M_PI / 4.0) *
+                                                        2.0)
+
+    } else  if (type == "rct") {
+      # Perspective (rectilinear)
+      x = (tan(zenith / 2.0) * 2.0 * cos(azimuth)) / (tan(M_PI / 4.0) *
+                                                        2.0)
+
+      y = (tan(zenith / 2.0) * 2.0 * sin(azimuth)) / (tan(M_PI / 4.0) *
+                                                        2.0)
+
+    } else {
+      stop("projection not correct, you have to use type=eqa|ort|eqd|str|rct.")
+    }
+    x =  floor((size * x + size) / 2.0)
+    y =  floor((size * y + size) / 2.0)
+    list(x = x, y = y)
+  }
+  bbdf <- NULL
+  if (file.exists("tmp/FBMdatat.rds")) {
+    bbdf <- bigstatsr::big_attach("tmp/FBMdatat.rds")
+  } else   if (file.exists("../tmp/FBMdatat.rds")) {
+    bbdf <- bigstatsr::big_attach("../tmp/FBMdatat.rds")
+  } else {
+    warning(
+      "No file with sparse matrix of gap fraction from Hemispherical projection of above-ground elements"
+    )
+  }
+
+  ## UI ---------
+  ui <- shiny::fluidPage(shiny::fluidRow(
+    shiny::sidebarPanel(
+      width = 6,
+
+      shiny::fluidRow(
+        shiny::column(width = 6,
+                      shinyWidgets::airDatepickerInput("bins",
+                                                       "Date and Time:",
+                                                       timepicker = T, value = Sys.time())
+                      ),
+        shiny::column(
+          width = 6,
+          shiny::fileInput(
+            "file1",
+            "Upload your raster (max 500x500)",
+            multiple = TRUE,
+            accept = c(".tif")
+          )
+        )
+      ),
+
+      shiny::fluidRow(
+
+        shiny::column(
+          width = 4,
+          shiny::numericInput(
+            "long",
+            label = "Longitude",
+            min = -180.0,
+            max = 180.0,
+            value = 11.94
+          )
+        ),
+        shiny::column(
+          width = 4,
+          shiny::numericInput(
+            "lat",
+            label = "Latitude",
+            min = -90.0,
+            max = 90.0,
+            value = 45.67
+          )
+        ),
+        shiny::column(
+          width = 4,
+          shiny::numericInput(
+            "heightFromTerrain",
+            label = "Height from terrain",
+            min = 0.0,
+            max = 90.0,
+            value = 1.5
+          )
+        )
+      ),
+      shiny::fluidRow(
+        shiny::column( title="Color or grayscale",
+                       width = 4, shinyWidgets::awesomeCheckbox("greyscale", "Greyscale", value = F)
+        ),
+        shiny::column( title="Changes the intensity of the light at each point proportionally to the
+                       dot product of the ray direction and the surface normal at
+                       that point. Zeros out all values directed away from the ray.",
+          width = 4, shinyWidgets::awesomeCheckbox("lambert", "Lambertian", value = T)
+        ),
+        shiny::column(
+          width = 4, shiny::actionButton("drawShade", "Draw shader")
+        ),
+        shiny::plotOutput("distPlot")
+      )
+    ),
+
+    shiny::column(width = 6,
+                  leaflet::leafletOutput("rastPlot2", height = "98vh")
+                  )
+  ))
 
 
   server <- function(input, output, session) {
+    dsm.local <- dsm
+    rast.shade <- dsm.local
+
+    rVals <- shiny::reactiveValues(
+      sunpos = c(0,90),
+      elmat = elmat
+    )
+
+    shiny::observeEvent(input$file1, {
+                          shiny::req(input$file1)
+                          dsm.local <<- raster::raster(input$file1$datapath)
+                          if(raster::ncell(dsm.local) > 1E6){
+                            shiny::showNotification("Raster size is too big, limit to 1 million total pixels.", duration=20)
+                            file.remove(input$file1$datapath)
+                            return(NULL)
+                          }
+                          if(is.null(raster::proj4string(dsm.local)) || is.na(raster::proj4string(dsm.local)) ){
+                            shiny::showNotification("Raster CRS unknown.", duration=20)
+                            file.remove(input$file1$datapath)
+                            return(NULL)
+                          }
+
+                          bds <-
+                            raster::extent(
+                              raster::projectExtent(
+                                dsm.local,
+                                "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+                              )
+                            )
+                          rVals$elmat <-   rayshader::raster_to_matrix(dsm.local)
+
+                          rast.shade <<- dsm.local
+                          leaflet::leafletProxy('rastPlot2') %>%
+                            leaflet::fitBounds(bds@xmin, bds@ymin, bds@xmax, bds@ymax)
+                        })
+
+
+    shiny::observeEvent({
+      input$bins
+      input$lat
+      input$long
+      },{
+        rVals$sunpos <- insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
+
+    })
+
+
+    # output$rastPlot1 <- shiny::renderPlot({
+    #   shiny::req( input$drawShade, input$bins )
+    #   sp <- sunpos()
+    #   # xy<-pos2image( sp[,2], sp[,1])
+    #   # id<-180*xy$y + xy$x
+    #   # rast.shade[ terra::cells(rast.gap) ] <- log10(bbdf[,id]+1)*-1
+    #   # terra::plot(rast.shade, col = viridis::turbo(n = 12), main = "Gap fraction (%)")
+    # })
+
+    output$rastPlot2 <- leaflet::renderLeaflet(leaflet.object)
+
+    shiny::observeEvent({
+      rVals$sunpos
+      rVals$elmat
+      input$drawShade
+      } ,{
+
+      sp <- rVals$sunpos
+      # shiny::req(input$drawShade,  sp)
+      shiny::withProgress(message = "Computing rayshader...", {
+        shiny::incProgress(0.1)
+        rs <-
+          rayshader::ray_shade(
+            rVals$elmat,
+            zscale = 1,
+            multicore = F,
+            lambert = input$lambert,
+            sunangle = sp[, 1],
+            sunaltitude = 90 - sp[, 2],
+            progbar = F
+          )
+
+        shiny::incProgress(0.3, message = "Finished rayshade... drawing map")
+
+
+        rast.shade[] <-  as.numeric(rs[nrow(rs):1 , ])
+
+        if(!input$lambert) rast.shade <- raster::as.factor(rast.shade)
+
+        if(input$greyscale){
+          cols <-  c(
+            "#000000",
+            "#333333",
+            "#666666",
+            "#999999",
+            "#BBBBBB",
+            "#DDDDDD",
+            "#FFFFFF"
+          )
+        } else {
+          cols <-  c(
+            "#30123B",
+            "#4686FB",
+            "#1AE4B6",
+            "#A2FC3C",
+            "#FABA39",
+            "#E4460A",
+            "#7A0403"
+          )
+        }
+        pal <-
+          leaflet::colorNumeric(
+           cols,
+            raster::values(rast.shade),
+            na.color = "transparent"
+          )
+
+        leaflet::leafletProxy('rastPlot2') %>%
+          leaflet::clearGroup(group = 'ShadowMap') %>%
+          leaflet::removeControl(layerId = 'myLegend') %>%
+
+          leaflet::addRasterImage(
+            rast.shade,
+            colors = pal,
+            group = "ShadowMap",
+            opacity = 0.8
+          ) %>%
+          leaflet::addLegend(
+            colors = cols,
+            title = "Shadow %",
+            labels = sprintf("%.2f",  (1 - ((1:7) / 7)) ),
+            opacity = 1,
+            position = "topleft",
+            layerId = "myLegend"
+          )
+
+      })
+
+      # myplot <- elmat %>%
+      #   rayshader::height_shade() %>%
+      #   rayshader::add_shadow(rs, 0.5) %>%
+      #   rayshader::plot_map()
+      #
+      # myplot <- rs %>%
+      #   rayshader::plot_map()
+      # myplot <- rayshader::plot_map(rs)
+
+    })
+
     output$distPlot <- shiny::renderPlot({
       shiny::req(input$bins)
 
-      dayafter <- seq( as.POSIXct(input$bins), length=2, by='2 day' )[2]
-      days = insol::JD(seq(as.POSIXct(input$bins), as.POSIXct(dayafter),by='10 min'))
-      message(as.POSIXct(input$bins), as.POSIXct(dayafter))
+      dayafter <-
+        seq(as.POSIXct(input$bins),
+            length = 2,
+            by = '1 day')[2]
+      days = insol::JD(seq(as.POSIXct(input$bins), as.POSIXct(dayafter), by =
+                             'min'))
+      # message(as.POSIXct(input$bins), as.POSIXct(dayafter))
       # scatterplot3d(sunvector(juneday,45,9,0),
       #               ylim=c(-1,1),zlim=c(0,1),pch=8,color='orange')
 
-      sp<- insol::sunpos(insol::sunvector(insol::JD(input$bins),input$lat,input$long,0))
-      sps<- insol::sunpos(insol::sunvector((days),input$lat,input$long,0))
-      print(days)
-      print(sps)
-      plotrix::polar.plot(90-sps[,2],sps[,1],start=90,clockwise=TRUE,rp.type='s',
-                 point.symbols=20,point.col=1,cex=1,radial.lim=c(0,90),
-                 main='Apparent solar path at date and position')
+      sp <-
+        insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
+      sps <-
+        insol::sunpos(insol::sunvector((days), input$lat, input$long, 0))
 
-      plotrix::polar.plot(90-sp[,2],sp[,1],start=90,clockwise=TRUE,rp.type='s',
-                 point.symbols=20,point.col=2,cex=3,radial.lim=c(0,90), add=T)
+      plotrix::polar.plot(
+        90 - sps[, 2],
+        sps[, 1],
+        start = 90,
+        clockwise = TRUE,
+        rp.type = 'l',
+        # point.symbols=20,point.col=1,cex=1,
+        radial.lim = c(0, 90),
+        main = 'Apparent solar path at date and position'
+      )
+
+      plotrix::polar.plot(
+        90 - sp[, 2],
+        sp[, 1],
+        start = 90,
+        clockwise = TRUE,
+        rp.type = 's',
+        point.symbols = 20,
+        point.col = 2,
+        cex = 3,
+        radial.lim = c(0, 90),
+        add = T
+      )
       # polar.plot(90-sps[,2],sps[,1],start=90,clockwise=TRUE,rp.type='l',
       #             line.col=3,cex=2, radial.lim=c(0,90) )
 
 
     })
   }
-  shiny::shinyApp(ui, server, ...)
+  shiny::shinyApp(ui, server)
 }
+# library(rPET)
+# solarApp()

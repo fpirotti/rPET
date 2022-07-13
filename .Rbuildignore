@@ -4,3 +4,5 @@
 ^README\.Rmd$
 ^data-raw$
 ^tmp$
+^tmp/photoes$
+^app\.R$

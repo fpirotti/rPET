@@ -1,8 +1,8 @@
 ---
-title: "Example using temperature raster"
+title: "Example using DSM raster"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Example using temperature raster}
+  %\VignetteIndexEntry{Example using DSM raster}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,8 +27,7 @@ terra::plot(rast.gap, col=viridis::turbo(n=12), main="CHM (m)" )
 ```
 
 ```{r read_data_pg}
-# library(RPostgreSQL) 
 
-
+# rPET::solarApp()
 
 ```

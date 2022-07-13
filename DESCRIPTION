@@ -13,18 +13,35 @@ License: CC0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0
 Imports: 
     pkgload,
-    shinyWidgets,
-    shiny,
-    scatterplot3d,
-    plotrix,
     insol,
     testthat,
     terra,
-    viridis
+    viridis,
+    magrittr,
+    leafem,
+    doParallel,
+    foreach,
+    htmlwidgets,
+    DBI,
+    progress,
+    Rcpp,
+    scales
 Suggests: 
     knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    rmarkdown,
+    shinyWidgets,
+    shiny,
+    plotrix,
+    bigmemory,
+    bigstatsr,
+    VoxR,
+    rayshader,
+    raster,
+    leaflet,
+    leaflet.extras,
+    RPostgreSQL
+VignetteBuilder: knitr 
+LinkingTo: Rcpp, progress, RcppArmadillo

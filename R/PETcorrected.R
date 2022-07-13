@@ -34,6 +34,10 @@
 #' @export
 #'
 #' @examples
+#' #Tmrt (mean radiant temperature - see )
+#' Tair <- c(10+(1:100)/5)
+#' Tglobe <- 21
+#'
 #' PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
 PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, icl=0.9 ){
   po <- 1013.25  # atmospheric pressure [hPa]
@@ -57,7 +61,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
   feff <- 0.725
   sex <-"male"
 
-  # Initialisation of the temperature set values
+  # Initialisation of the temperature set values ----
   tc_set<-36.6
   tsk_set<-34
   tbody_set<-0.1*tsk_set+0.9*tc_set
@@ -104,21 +108,21 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
     he <- M + met_base
     h <- he * (1.0 - eta)
 
-    # Respiratory energy losses #
+    # Respiratory energy losses # ----
     # Expired air temperature calculation:
     texp <- 0.47 * ta + 21.0
 
-    # Pulmonary flow rate
+    # Pulmonary flow rate ---
     rtv <- he * 1.44 * `^`(10.0, -6.0)
 
-    # Sensible heat energy loss:
+    # Sensible heat energy loss: ---
     Cres <- cair * (ta - texp) * rtv
 
-    # Latent heat energy loss:
+    # Latent heat energy loss: ---
     vpexp <-
       6.11 * `^`(10.0, 7.45 * texp / (235.0 + texp)) # Partial pressure of the breathing air
     Eres <- 0.623 * Lvap / p * (vpa - vpexp) * rtv
-    # total breathing heat loss
+    # total breathing heat loss ----
     qresp <- (Cres + Eres)
 
     c <- rep(0, 11)
@@ -126,7 +130,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
     hc <- 2.67 + 6.5 * `^`(v_air, 0.67) #Convection coefficient
     hc <- hc * `^`(p / po, 0.55) # Correction with pressure
 
-    # Clothed fraction of the body approximation #
+    # Clothed fraction of the body approximation # ---
     rcl <- icl / 6.45 # conversion in m2.K/W
     y <- 0
     if (facl > 1.0) {
@@ -152,9 +156,9 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
       Adu * (fcl - 1.0 + facl) / (6.28 * ht * y)  # External radius
     r1 <- facl * Adu / (6.28 * ht * y)  # Internal radius
     di <- r2 - r1
-    # clothed surface
+    # clothed surface ----
     Acl <- Adu * facl + Adu * (fcl - 1.0)
-    # skin temperatures
+    # skin temperatures ---
     for (j in 1:7) {
       tsk <- tsk_set
       count1 <- 0
@@ -166,13 +170,13 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
           # Estimation of the radiation losses
           rclo2 <-
             emcl * sigm * ((`^`(tcl + 273.2, 4.0)) - (`^`(tmrt + 273.2, 4.0))) * feff
-          # Calculation of the thermal resistance of the body:
+          # Calculation of the thermal resistance of the body: ----
           htcl <-
             (6.28 * ht * y * di) / (rcl * `log`(r2 / r1) * Acl)
           tsk <-
             (hc * (tcl - ta) + rclo2) / htcl + tcl  # Skin temperature calculation
 
-          # Radiation losses #
+          # Radiation losses # ----
           Aeffr <-
             Adu * feff  # Effective radiative area depending on the position of the subject
           # For bare skin area:
@@ -208,7 +212,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
           if (tsk == tsk_set) {
             tsk <- tsk_set + 0.01
           }
-          #Calculation of Tcore[]:
+          # Calculation of Tcore[]: ----
           # case 7 : Set blood flow only
           tcore[[7]] <-
             (h + qresp) / (5.28 * Adu + K_blood * 6.3 / 3600.0) + tsk
@@ -233,11 +237,11 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
               (-c[[7]] - `^`(abs(c[[9]]), 0.5)) / (2.0 * c[[5]])
           }
 
-          # Calculation of sweat losses  #
+          # Calculation of sweat losses  # ----
           tbody <- 0.1 * tsk + 0.9 * tcore[[j]]
-          # Sweating flow calculation
+          # Sweating flow calculation ----
           swm <- 304.94 * (tbody - tbody_set) * Adu / 3600000.0
-          # Saturation vapor pressure at temperature Tsk and for 100% HR
+          # Saturation vapor pressure at temperature Tsk and for 100% HR ----
           vpts <- 6.11 * `^`(10.0, 7.45 * tsk / (235.0 + tsk))
           if (tbody <= tbody_set) {
             swm <- 0.0
@@ -251,7 +255,8 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
           fec <- 1.0 / (1.0 + 0.92 * hc * rcl)
           emax <-
             hm * (vpa - vpts) * Adu * Lvap * fec # Max latent flux
-          wetsk <- esweat / emax # skin wettedness
+          wetsk <- esweat / emax
+          # skin wettedness ----
           # esw: Latent flux depending on w [W.m-2]
           if (wetsk > 1.0) {
             wetsk <- 1.0
@@ -279,11 +284,11 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
           if (vb1 < 0.0) {
             vb1 <- 0.0
           }
-          # Calculation of the blood flow depending on the difference with the set value
+          # Calculation of the blood flow depending on the difference with the set value ----
           vb <- (6.3 + 75 * vb2) / (1.0 + 0.5 * vb1)
-          # energy balance MEMI modele
+          # energy balance MEMI modele ----
           enbal <- h + ed + qresp + esw + csum + rsum
-          # clothing temperature
+          # clothing temperature ----
           if (count1 == 0)
             xx <- 1.0
           if (count1 == 1)
@@ -361,7 +366,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
       }
       else{
         if ((j == 4 || vb < 91.0) && (j != 4 || vb >= 89.0)) {
-          # Maximum blood flow
+          # Maximum blood flow ----
           if (vb > 90.0) {
             vb <- 90.0
           }
@@ -399,7 +404,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
 
 
   pet <- function(tc,tsk,tcl,ta_init, esw_real){
-    # Input variables of the PET reference situation:
+    # Input variables of the PET reference situation: ----
     icl_ref<- 0.9 # clo
     M_activity_ref <- 80 # W
     v_air_ref <- 0.1 # m/s
@@ -411,13 +416,13 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
     enbal2  <-  0.0
     count1  <-  0
 
-    # base metabolism
+    # base metabolism ----
     if (sex == "male"){
       met_base  <-  3.45 * `^`(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / `^`(mbody, 1.0 / 3.0) - 43.4))
     } else{
       met_base  <-  3.19 * `^`(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / `^`(mbody, 1.0 / 3.0) - 42.1))
     }
-    # breathing flow rate
+    # breathing flow rate ----
     rtv_ref  <-  (M_activity_ref + met_base) * 1.44 * `^`(10.0, -6.0)
 
     swm  <-  304.94 * (tbody - tbody_set) * Adu / 3600000.0 #sweating flow rate
@@ -430,30 +435,30 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
     }
     esweat  <-  -swm * Lvap
     esweat <- esw_real
-    # standard environment
+    # standard environment ---
     hc  <-  2.67 + 6.5 * `^`(v_air_ref, 0.67)
     hc  <-  hc * `^`(p/po, 0.55)
-    # radiation saldo
+    # radiation saldo ----
     Aeffr  <-  Adu * feff
     facl  <-  (173.51 * icl - 2.36 - 100.76 *icl*icl + 19.28 * `^`(icl, 3.0)) / 100.0
     if (facl > 1.0){
       facl  <-  1.0
     }
-    # Increase of the exchange area depending on the clothing level
+    # Increase of the exchange area depending on the clothing level ----
     fcl  <-  1 + (0.31 * icl)
     Acl  <-  Adu * facl + Adu * (fcl - 1.0)
     hm  <-  0.633 * hc / (p * cair) # Evaporation coefficient [W/(m^2*Pa)]
     fec  <-  1.0 / (1.0 + 0.92 * hc * 0.155*icl_ref) # vapour transfer efficiency for reference clothing
     emax  <-  hm * (vpa_ref - vpts) * Adu * Lvap * fec # max latetn flux for the reference vapour pressure 12 hPa
     wetsk  <-  esweat / emax
-    # skin wettedness
+    # skin wettedness  -----
     if (wetsk > 1.0){
       wetsk  <-  1.0
     }
     eswdif  <-  esweat - emax
-    # diffusion
+    ## diffusion -------
     ediff  <-  Lvap / (rdsk + rdcl) * Adu * (1.0 - wetsk) * (vpa_ref-vpts)
-    # esw: sweating [W.m-2] from the actual environment : in depends only on the difference with the core set temperature
+    ## esw: sweating [W.m-2] from the actual environment : in depends only on the difference with the core set temperature
     if( eswdif <= 0.0){
       esw  <-  emax
     }
@@ -466,19 +471,20 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
     while( count1 != 4){
       rbare  <-  Aeffr * (1.0-facl)*emsk*sigm*(`^`(tx + 273.2, 4.0) - `^`(tsk + 273.2, 4.0))
       rclo  <-  feff * Acl * emcl * sigm*(`^`(tx + 273.2, 4.0) - `^`(tcl + 273.2, 4.0))
-      rsum  <-  rbare + rclo # Recalculation of the radiative losses
-      # convection
+      rsum  <-  rbare + rclo
+      # Recalculation of the radiative losses --------
+      ## convection -----
       cbare  <-  hc * (tx - tsk) * Adu * (1.0 - facl)
       cclo  <-  hc * (tx - tcl) * Acl
-      csum  <-  cbare + cclo # Recalculation of the convective losses
-      # breathing
+      csum  <-  cbare + cclo
+      # Recalculation of the convective losses -----
+      ## breathing -----
       texp  <-  0.47 * tx + 21.0
       Cres  <-  cair * (tx - texp) * rtv_ref
       vpexp  <-  6.11 * `^`(10.0, 7.45 * texp / (235.0 + texp))
       Eres  <-  0.623 * Lvap / p * (vpa_ref - vpexp) * rtv_ref
       qresp  <-  (Cres + Eres)
-      # ----------------------------------------
-      # energy balance
+      ## energy balance -----
       enbal  <-  (M_activity_ref + met_base) + ediff + qresp + esw + csum + rsum
       if (count1 == 0)
         xx <- 1.0
