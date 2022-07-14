@@ -15,6 +15,7 @@ inline double bilinearinterp(double q11, double q12, double q21, double q22, dou
 
 bool ray_intersects(NumericMatrix& heightmap,
                     NumericMatrix& addressmap,
+                    NumericMatrix& lengthmap,
                     NumericMatrix& pointcloud,
                     NumericVector& tanangles,
                     int i, int j, int angentry,
@@ -38,12 +39,16 @@ bool ray_intersects(NumericMatrix& heightmap,
     if(xcoord > numberrows-1 || ycoord > numbercols-1 ||
        xcoord < 0 || ycoord < 0 ||
        tanangheight > maxheight) {
-      Rcout << "\n -- Braking at  tan=" << tanangheight << " max=" << maxheight << std::endl;
+       //Rcout << " -- Braking at " << i  << "x" << j << " curz=" << curZ << " add=" << address <<  " tan=" << tanangheight << " max=" << maxheight << std::endl;
       break;
     }
-
+    int iii=0;
     while(curZ < prevCurZ){
-
+      iii++;
+      if(iii==3){
+        Rcout << "||||-- Braking at  tan=" << tanangheight << " max=" << maxheight << std::endl;
+        break;
+      }
       prevCurZ = curZ;
 
       if(xcoord > numberrows-1 || ycoord > numbercols-1 ||
@@ -189,8 +194,11 @@ bool ray_intersects(NumericMatrix& heightmap,
 NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
                            NumericMatrix& heightmap,
                            NumericMatrix& addressmap,
+                           NumericMatrix& lengthmap,
                            NumericMatrix& pointcloud,
-                           double zscale, double maxsearch, const NumericMatrix cache_mask,
+                           double zscale, double maxsearch,
+                           double maxheight,
+                           const NumericMatrix cache_mask,
                            bool progbar) {
 
   double precisionval = 1e-10;
@@ -204,6 +212,7 @@ NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
     tanangles(i) = tan(anglebreaks[i]);
   }
 
+  // printf("Hello there");
   int numbercols = heightmap.ncol();
   int numberrows = heightmap.nrow();
   NumericMatrix shadowmatrix(numberrows,numbercols);
@@ -213,9 +222,9 @@ NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
   int current_max_entry = numberangles - 1;
   int current_entry = current_max_entry/2;
   bool anyfound;
-  double maxheight = max(heightmap);
+ // double maxheight = max(heightmap);
   char str[100];
-  sprintf(str, "Raytracing with %.4f [:bar] ETA: :eta", maxdist);
+  sprintf(str, "Raytracing with MaxDist=%.4f MaxHeight=%.4f  [:bar] ETA: :eta", maxdist, maxheight);
   Rprintf(str);
   RProgress::RProgress pb( str );
   //RProgress::RProgress pb("Raytracing [:bar] ETA: :eta");
@@ -231,12 +240,16 @@ NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
       pb.tick();
     }
     for(int j = 0; j < numbercols; j++) {
+      if( isnanf(heightmap(i,j))  ) {
+        continue;
+      }
       if(cache_mask(i,j)) {
         anyfound = false;
         if(numberangles < 3) {
           for(int ang = 0; ang < numberangles; ang++) {
             if(ray_intersects(heightmap,
                               addressmap,
+                              lengthmap,
                               pointcloud,
                               tanangles,
                               i, j, ang,
@@ -249,8 +262,13 @@ NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
           }
         } else {
           while(current_min_entry != current_entry && current_max_entry != current_entry) {
+
+
+            //Rcout << "$$$ i=" <<  i << " j=" << j << " curEntry=" << current_entry  << " maxheight=" <<  maxheight << " precisionval=" << precisionval  << " cossunangle=" <<  cossunangle << " sinsunangle=" << sinsunangle << " c" << numbercols << " r" << numberrows << " zsc" <<  zscale << " maxDist" << maxdist << std::endl;
+
             if(ray_intersects(heightmap,
                               addressmap,
+                              lengthmap,
                               pointcloud,
                               tanangles,
                               i, j, current_entry,
@@ -274,6 +292,7 @@ NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks,
           current_entry = current_max_entry/2;
         }
       }
+
     }
   }
   return(shadowmatrix);

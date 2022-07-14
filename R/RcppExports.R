@@ -5,7 +5,7 @@ lambshade_cpp <- function(heightmap, rayvector) {
     .Call(`_rPET_lambshade_cpp`, heightmap, rayvector)
 }
 
-rayshade_cpp <- function(sunangle, anglebreaks, heightmap, addressmap, pointcloud, zscale, maxsearch, cache_mask, progbar) {
-    .Call(`_rPET_rayshade_cpp`, sunangle, anglebreaks, heightmap, addressmap, pointcloud, zscale, maxsearch, cache_mask, progbar)
+rayshade_cpp <- function(sunangle, anglebreaks, heightmap, addressmap, lengthmap, pointcloud, zscale, maxsearch, maxheight, cache_mask, progbar) {
+    .Call(`_rPET_rayshade_cpp`, sunangle, anglebreaks, heightmap, addressmap, lengthmap, pointcloud, zscale, maxsearch, maxheight, cache_mask, progbar)
 }
 
