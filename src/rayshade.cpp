@@ -40,17 +40,17 @@ bool ray_intersects(NumericMatrix& heightmap,
     if(xcoord > numberrows-1 || ycoord > numbercols-1 ||
        xcoord < 0 || ycoord < 0 ||
        tanangheight > maxheight) {
-       Rcout << " -- ---- at " << i  << "x" << j << " curz=" << curZ << " add=" << address <<  " tan=" << tanangheight << " max=" << maxheight << std::endl;
       break;
     }
 
     address = addressmap(xcoord, ycoord);
+    if(address==0){
+      break;
+    }
     nPointsAboveGroundPlane = lengthmap(xcoord, ycoord);
+
     iii=0;
-    k = maxdist;
-
-    Rcout << " -- Braking at address= " <<  address <<  " k=" << k << " max=" << maxheight << " nPoints=" << nPointsAboveGroundPlane << std::endl;
-
+    // k = maxdist;
     while(iii < nPointsAboveGroundPlane){
       // safety ... just run max 100 times, but will break upon reaching lengthmapped value
       if(iii==20){
@@ -58,13 +58,15 @@ bool ray_intersects(NumericMatrix& heightmap,
         break;
       }
      // prevCurZ = curZ;
+     // Rcout << " -- Braking at address= " <<  address <<  " x=" << xcoord <<  " y=" << ycoord << " max=" << maxheight << " nPoints=" << nPointsAboveGroundPlane << std::endl;
 
-      Rcout << k <<  std::endl;
-      break;
+
+      // Rcout << k <<  std::endl;
+      // break;
       if(xcoord > numberrows-1 || ycoord > numbercols-1 ||
          xcoord < 0 || ycoord < 0 ||
          tanangheight > maxheight) {
-        Rcout << "\nBraking at  tan=" << tanangheight << " max=" << maxheight << std::endl;
+        //Rcout << "\nBraking at  tan=" << tanangheight << " max=" << maxheight << std::endl;
         break;
       } else {
         ceilxcoord = ceil(xcoord);
@@ -95,6 +97,11 @@ bool ray_intersects(NumericMatrix& heightmap,
             heightmap(floorxcoord, ceilycoord) < tanangheight &&
             heightmap(ceilxcoord, floorycoord) < tanangheight &&
             heightmap(floorxcoord, floorycoord) < tanangheight) {
+
+          curZ =  pointcloud(address,1);
+          tanangheight = curZ + tanangles[angentry] * k * zscale;
+          address++;
+          iii++;
           continue;
         }
 
@@ -109,14 +116,16 @@ bool ray_intersects(NumericMatrix& heightmap,
         }
       }
 
-      curZ = curZ + pointcloud(address,2);
-      tanangheight = curZ + tanangles[angentry] * k * zscale;
-      address=address+iii;
+      if( pointcloud.nrow() < (address-1) ){
+        Rcout << "   nrow " <<  pointcloud.nrow() << " address=" << address << std::endl;
 
-      iii++;
-      if( iii == lengthmap(i, j) ){
         break;
       }
+      curZ =  pointcloud(address,1);
+      tanangheight = curZ + tanangles[angentry] * k * zscale;
+      address++;
+      iii++;
+
     }
 
   }
@@ -310,7 +319,10 @@ NumericMatrix rayshade_cpp(double sunangle,
 
           }
           if(anyfound) {
-            shadowmatrix(i,j) = 1 - ((double)current_entry + 1) * invnumberangles;
+            shadowmatrix(i,j) = 1.0 - ((double)current_entry + 1.0) * invnumberangles;
+            Rcout << " current_entry "  << ((double)current_entry + 1.0)
+                  << " invnumberangles "  <<  invnumberangles
+                  <<  std::endl;
           }
           current_min_entry = 0;
           current_max_entry =  numberangles - 1;
