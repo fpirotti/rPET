@@ -64,7 +64,6 @@ ray_shade = function(heightraster, PointCloud3D, sunaltitude=45, sunangle=315, m
     if(!identical(PointCloud3D,pkg.globals$PointCloud3D)){
       pkg.globals$PointCloud3D <- PointCloud3D
     }
-    browser()
     message("Caching your data...")
     if(is.character(pkg.globals$heightraster)){
       if(!file.exists(pkg.globals$heightraster)) {
@@ -73,29 +72,56 @@ ray_shade = function(heightraster, PointCloud3D, sunaltitude=45, sunangle=315, m
       heightgrid <- terra::rast(pkg.globals$heightraster)
     }
 
+    ## list of index and DSM Z value -----
     pointcloud.cellsHeightMap <- na.omit(data.frame(id=terra::cellFromXY(heightgrid, PointCloud3D[,1:2]), Z=PointCloud3D[,3]))
-    pointcloud.cellsHeightMap$Z <-  pointcloud.cellsHeightMap$Z - heightgrid[pointcloud.cellsHeightMap$id]
-    pointcloud.cellsHeightMap<- na.omit(pointcloud.cellsHeightMap)
-    # summary(pointcloud.cellsHeightMap)
+
+    ## nZ value -----
+    #pointcloud.cellsHeightMap$Z <-  pointcloud.cellsHeightMap$Z - heightgrid[pointcloud.cellsHeightMap$id]
+    pointcloud.cellsHeightMap <- na.omit(pointcloud.cellsHeightMap)
+
+    message("1 / 4 Height map calculated...")
+
+    ## remove points below terrain surface -----
     lw <- which(pointcloud.cellsHeightMap[,"Z"]<0)
     if(length(lw)>0){
       message(length(lw), " points below the terrain height map! they will be removed")
       pointcloud.cellsHeightMap<-pointcloud.cellsHeightMap[-lw,]
     }
-    ord<-order(pointcloud.cellsHeightMap[,"id"], pointcloud.cellsHeightMap[,"Z"])
-    pkg.globals$pointcloud.cellsHeightMap.m<-as.matrix(pointcloud.cellsHeightMap[ord,])
 
+
+    ## order by ID and Z so that are ordered.... do we need this??? if random it is ok for checking raycasting -----
+    # ord<-order(pointcloud.cellsHeightMap[,"id"], pointcloud.cellsHeightMap[,"Z"])
+    ord<-order(pointcloud.cellsHeightMap[,"id"])
+    pkg.globals$pointcloud.cellsHeightMap.m<-pointcloud.cellsHeightMap[ord,]
+    # pkg.globals$pointcloud.cellsHeightMap.m<-as.matrix(pointcloud.cellsHeightMap)
+
+    message("2 / 4  Height voxel map to matrix  ordered by id only...")
     ww<-which(!duplicated(pkg.globals$pointcloud.cellsHeightMap.m[,"id"]))
 
     heightgrid[is.nan(heightgrid)]<-NA
 
     addressGrid <- heightgrid
+    addressGrid[] <- NA
+    lengthGrid <- addressGrid
+    # addressGrid[] <- as.integer(addressGrid[])
+    # plot(addressGrid)
     addressGrid[ pkg.globals$pointcloud.cellsHeightMap.m[ww, "id"] ] <- ww
 
-    lengthLUT <- table(pkg.globals$pointcloud.cellsHeightMap.m[,"id"])
+    message("3 / 4  Address grid created...")
 
-    lengthGrid <- heightgrid
-    lengthGrid[ as.integer(names(lengthLUT)) ] <- as.integer(lengthLUT)
+    lengthLUT <- tabulate(pkg.globals$pointcloud.cellsHeightMap.m[,"id"])
+    message("3a / 4  Address grid created...")
+    llut <- which(lengthLUT!=0)
+    message("3b / 4  Address grid created...")
+
+    message("3d / 4  Address grid created...")
+    lengthGrid[ llut ] <- lengthLUT[llut]
+
+    # png("p1.png", res = 250, width = 1200, height = 1300)
+    #   plot( terra::project(addressGrid, "EPSG:4326"),  col= viridis::turbo(20) )
+    # dev.off()
+    #
+    message("4 / 4  Length grid created...")
 
     pkg.globals$lengthmap <- raster_to_matrix(lengthGrid)
     pkg.globals$addressmap <- raster_to_matrix(addressGrid)
@@ -141,16 +167,20 @@ ray_shade = function(heightraster, PointCloud3D, sunaltitude=45, sunangle=315, m
     cache_mask = padding
   }
   if(!multicore) {
-
-    shadowmatrix = rayshade_cpp(sunangle = sunangle_rad, anglebreaks = anglebreaks_rad,
-                                heightmap = flipud(pkg.globals$heightmap),
-                                addressmap = flipud(pkg.globals$addressmap),
-                                lengthmap = flipud(pkg.globals$lengthmap),
-                                pointcloud = pkg.globals$pointcloud.cellsHeightMap.m,
+    message("running shadowmatrix")
+    shadowmatrix = rayshade_cpp(sunangle = sunangle_rad,
+                                anglebreaks = anglebreaks_rad,
+                                heightmap = flipud(as.matrix(pkg.globals$heightmap)),
+                                addressmap = flipud(as.matrix(pkg.globals$addressmap)),
+                                lengthmap = flipud(as.matrix(pkg.globals$lengthmap)),
+                                pointcloud = as.matrix(pkg.globals$pointcloud.cellsHeightMap.m),
                                 zscale = zscale,
                                 maxsearch = pkg.globals$maxsearch,
                                 maxheight=pkg.globals$maxheight,
-                                cache_mask = cache_mask, progbar = progbar)
+                                cache_mask = cache_mask,
+                                progbar = progbar)
+
+
     shadowmatrix = shadowmatrix[c(-1,-nrow(shadowmatrix)),c(-1,-ncol(shadowmatrix))]
     cache_mask = cache_mask[c(-1,-nrow(cache_mask)),c(-1,-ncol(cache_mask))]
     shadowmatrix[shadowmatrix<0] = 0

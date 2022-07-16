@@ -6,3 +6,4 @@
 ^tmp$
 ^tmp/photoes$
 ^app\.R$
+^\.github$
