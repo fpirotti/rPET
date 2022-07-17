@@ -5,7 +5,7 @@
 \title{Calculate Raytraced Shadow Map with two elements: a surface and a point cloud representing obstructions}
 \usage{
 ray_shade(
-  heightraster,
+  heightrasterFile,
   PointCloud3D,
   sunaltitude = 45,
   sunangle = 315,
@@ -22,7 +22,8 @@ ray_shade(
 )
 }
 \arguments{
-\item{heightraster}{A file or raster object  (regular grid) with Digital Terrain Model. NB not a two-dimensional matrix like the ray_shade function, as it will be converted internally, where each entry in the matrix is the elevation at that point. All points are assumed to be evenly spaced.}
+\item{heightrasterFile}{A character string with the file name of a raster grid of a Digital Terrain Model.
+NB  it will be converted internally to a matrix, where each entry in the matrix is the elevation of ground surface at that point. All points are assumed to be evenly spaced.}
 
 \item{PointCloud3D}{A three-dimensional matrix or data frame with XYZ columns}
 

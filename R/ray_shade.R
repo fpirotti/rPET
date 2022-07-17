@@ -1,18 +1,18 @@
-pkg.globals <- new.env()
+globals <- new.env()
 
-pkg.globals$heightraster <- NA
-pkg.globals$addressraster <- NA
-pkg.globals$lengthraster <- NA
+globals$heightraster <- NA
+globals$addressraster <- NA
+globals$lengthraster <- NA
 
-pkg.globals$heightmap <- NA
-pkg.globals$addressmap <- NA
-pkg.globals$lengthmap <- NA
+globals$heightmap <- NA
+globals$addressmap <- NA
+globals$lengthmap <- NA
 
 
-pkg.globals$PointCloud3D <- NA
-pkg.globals$pointcloud.cellsHeightMap.m <- NA
-pkg.globals$originalheightmap <- NA
-pkg.globals$maxheight <- NA
+globals$PointCloud3D <- NA
+globals$pointcloud.cellsHeightMap.m <- NA
+globals$originalheightmap <- NA
+globals$maxheight <- NA
 
 #'@title Calculate Raytraced Shadow Map with two elements: a surface and a point cloud representing obstructions
 #'
@@ -50,7 +50,8 @@ pkg.globals$maxheight <- NA
 #'@export
 #'@examples
 #'#First we ray trace the Monterey Bay dataset.
-ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=315, maxsearch=NULL, lambert=TRUE, zscale=1,
+ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=315,
+                     maxsearch=NULL, lambert=TRUE, zscale=1,
                     multicore = FALSE, cache_mask = NULL, shadow_cache=NULL, progbar=interactive(),
                     anglebreaks = NULL, onlyprepare = FALSE, ...) {
 
@@ -81,19 +82,19 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     return(NULL)
   }
 
-  if(!identical(PointCloud3D,pkg.globals$PointCloud3D) ||
-     !identical(heightmap,pkg.globals$heightmap) ) {
+  if(!identical(PointCloud3D,globals$PointCloud3D) ||
+     !identical(heightmap,globals$heightmap) ) {
 
 
-    if(!identical(heightmap,pkg.globals$heightmap)){
-      pkg.globals$heightraster <- heightraster
-      pkg.globals$heightmap <- heightmap
-      pkg.globals$originalheightmap <- originalheightmap
+    if(!identical(heightmap,globals$heightmap)){
+      globals$heightraster <- heightraster
+      globals$heightmap <- heightmap
+      globals$originalheightmap <- originalheightmap
 
     }
 
-    if(!identical(PointCloud3D,pkg.globals$PointCloud3D)){
-      pkg.globals$PointCloud3D <- PointCloud3D
+    if(!identical(PointCloud3D,globals$PointCloud3D)){
+      globals$PointCloud3D <- PointCloud3D
     }
     message("Caching your data...")
 
@@ -118,11 +119,11 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     ## order by ID and Z so that are ordered.... do we need this??? if random it is ok for checking raycasting -----
     # ord<-order(pointcloud.cellsHeightMap[,"id"], pointcloud.cellsHeightMap[,"Z"])
     ord<-order(pointcloud.cellsHeightMap[,"id"])
-    pkg.globals$pointcloud.cellsHeightMap.m<-pointcloud.cellsHeightMap[ord,]
-    # pkg.globals$pointcloud.cellsHeightMap.m<-as.matrix(pointcloud.cellsHeightMap)
+    globals$pointcloud.cellsHeightMap.m<-pointcloud.cellsHeightMap[ord,]
+    # globals$pointcloud.cellsHeightMap.m<-as.matrix(pointcloud.cellsHeightMap)
 
     message("2 / 4  Height voxel map to matrix  ordered by id only...")
-    ww<-which(!duplicated(pkg.globals$pointcloud.cellsHeightMap.m[,"id"]))
+    ww<-which(!duplicated(globals$pointcloud.cellsHeightMap.m[,"id"]))
 
     heightraster[is.nan(heightraster)]<-NA
 
@@ -131,11 +132,11 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     lengthGrid <- addressGrid
     # addressGrid[] <- as.integer(addressGrid[])
     # plot(addressGrid)
-    addressGrid[ pkg.globals$pointcloud.cellsHeightMap.m[ww, "id"] ] <- ww
+    addressGrid[ globals$pointcloud.cellsHeightMap.m[ww, "id"] ] <- ww
 
     message("3 / 4  Address grid created...")
 
-    lengthLUT <- tabulate(pkg.globals$pointcloud.cellsHeightMap.m[,"id"])
+    lengthLUT <- tabulate(globals$pointcloud.cellsHeightMap.m[,"id"])
     message("3a / 4  Address grid created...")
     llut <- which(lengthLUT!=0)
     message("3b / 4  Address grid created...")
@@ -149,19 +150,19 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     #
     message("4 / 4  Length grid created...")
 
-    pkg.globals$lengthraster <- lengthGrid
-    pkg.globals$addressraster <- addressGrid
+    globals$lengthraster <- lengthGrid
+    globals$addressraster <- addressGrid
 
-    pkg.globals$lengthmap <- raster_to_matrix(lengthGrid)
-    pkg.globals$addressmap <- raster_to_matrix(addressGrid)
+    globals$lengthmap <- raster_to_matrix(lengthGrid)
+    globals$addressmap <- raster_to_matrix(addressGrid)
 
 
-    pkg.globals$addressmap =  add_padding(pkg.globals$addressmap)
-    pkg.globals$lengthmap =  add_padding(pkg.globals$lengthmap)
+    globals$addressmap =  add_padding(globals$addressmap)
+    globals$lengthmap =  add_padding(globals$lengthmap)
 
-    pkg.globals$maxheight <- max(pkg.globals$heightmap,na.rm=TRUE)
+    globals$maxheight <- max(globals$heightmap,na.rm=TRUE)
 
-    pkg.globals$maxsearch = (max(pkg.globals$heightmap,na.rm=TRUE) - min(pkg.globals$heightmap,na.rm=TRUE))/(zscale*sinpi(min(anglebreaks[anglebreaks > 0])/180))
+    globals$maxsearch = (max(globals$heightmap,na.rm=TRUE) - min(globals$heightmap,na.rm=TRUE))/(zscale*sinpi(min(anglebreaks[anglebreaks > 0])/180))
 
     message("Caching finised...")
 
@@ -177,10 +178,10 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
 
 
   if(all(anglebreaks <= 0)) {
-    return(matrix(0,nrow=nrow(pkg.globals$heightmap),ncol=ncol(pkg.globals$heightmap)))
+    return(matrix(0,nrow=nrow(globals$heightmap),ncol=ncol(globals$heightmap)))
   }
   if(!is.null(maxsearch)) {
-     pkg.globals$maxsearch <- maxsearch
+     globals$maxsearch <- maxsearch
   }
   anglebreaks = anglebreaks[order(anglebreaks)]
   anglebreaks_rad = anglebreaks*pi/180
@@ -188,7 +189,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
 
 
   if(is.null(cache_mask)) {
-    cache_mask = matrix(1,nrow = nrow(pkg.globals$heightmap),ncol=ncol(pkg.globals$heightmap))
+    cache_mask = matrix(1,nrow = nrow(globals$heightmap),ncol=ncol(globals$heightmap))
   } else {
     padding = matrix(0,nrow(cache_mask)+2,ncol(cache_mask)+2)
     padding[2:(nrow(padding)-1),2:(ncol(padding)-1)] = cache_mask
@@ -200,13 +201,13 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     shadowmatrix <- tryCatch({
       rayshade_cpp(sunangle = sunangle_rad,
                    anglebreaks = anglebreaks_rad,
-                   heightmap = flipud(as.matrix(pkg.globals$heightmap)),
-                   addressmap = flipud(as.matrix(pkg.globals$addressmap)),
-                   lengthmap = flipud(as.matrix(pkg.globals$lengthmap)),
-                   pointcloud = as.matrix(pkg.globals$pointcloud.cellsHeightMap.m),
+                   heightmap = flipud(as.matrix(globals$heightmap)),
+                   addressmap = flipud(as.matrix(globals$addressmap)),
+                   lengthmap = flipud(as.matrix(globals$lengthmap)),
+                   pointcloud = as.matrix(globals$pointcloud.cellsHeightMap.m),
                    zscale = zscale,
-                   maxsearch = pkg.globals$maxsearch,
-                   maxheight=pkg.globals$maxheight,
+                   maxsearch = globals$maxsearch,
+                   maxheight=globals$maxheight,
                    cache_mask = cache_mask,
                    progbar = progbar)
     },
@@ -224,7 +225,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     shadowmatrix[shadowmatrix<0] = 0
     if(lambert) {
       print(shadowmatrix)
-      shadowmatrix = shadowmatrix * lamb_shade(pkg.globals$originalheightmap, sunaltitude = mean(anglebreaks),
+      shadowmatrix = shadowmatrix * lamb_shade(globals$originalheightmap, sunaltitude = mean(anglebreaks),
                                                          sunangle = sunangle, zscale = zscale)
     }
     if(!is.null(shadow_cache)) {
