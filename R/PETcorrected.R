@@ -64,7 +64,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
   # Initialisation of the temperature set values ----
   tc_set<-36.6
   tsk_set<-34
-  tbody_set<-0.1*tsk_set+0.9*tc_set
+  tbody_set<- 0.1*tsk_set+0.9*tc_set
 
 
   systemp <- function(ta = 23,

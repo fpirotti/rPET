@@ -1,4 +1,6 @@
-
+---
+output: github_document
+---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # rPET - Physiological Equivalent Temperature
@@ -18,9 +20,23 @@ from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
  
 Solar illumination is simulated at points in space using a 3D model 
 in voxel structure and a ray-casting method.
- 
-<img src="man/figures/readme1.png"   style="width:400px; max-width: 40% !important;"/>
+
+<video width="354" height="488" autoplay>
+  <source src="man/figures/sim.mp4" type="video/mp4"> 
+Your browser does not support the video tag.
+</video>
+
+<img src="man/figures/readme1.png"   style="width:100%; max-width: 400px !important;"/>
 Figure 1. Example over a UAV lidar flight with 5000 points per square meter.
+ 
+<img src="man/figures/readme1.png"   style="width:100%; max-width: 400px !important;"/>
+Figure 1. Example over a UAV lidar flight with 5000 points per square meter.
+
+the RayShader function was taken partly from the work of 
+[tylermorganwal's rayshader for R](https://github.com/tylermorganwall/rayshader){target="_blank"}
+but adapted to point clouds. For more detail see 
+[Pirotti et al. publication](https://github.com/tylermorganwall/rayshader "Taylemoraganwal Rayshader")
+ 
 
 ## Installation
 

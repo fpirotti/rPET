@@ -3,6 +3,7 @@
 export("%>%")
 export(PETcorrected)
 export(lamb_shade)
+export(matrix2raster)
 export(raster_to_matrix)
 export(ray_shade)
 export(solarApp)

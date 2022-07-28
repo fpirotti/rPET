@@ -24,8 +24,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rayshade_cpp
-NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks, NumericMatrix& heightmap, NumericMatrix& addressmap, NumericMatrix& lengthmap, NumericMatrix& pointcloud, double zscale, double maxsearch, double maxheight, const NumericMatrix cache_mask, bool progbar);
-RcppExport SEXP _rPET_rayshade_cpp(SEXP sunangleSEXP, SEXP anglebreaksSEXP, SEXP heightmapSEXP, SEXP addressmapSEXP, SEXP lengthmapSEXP, SEXP pointcloudSEXP, SEXP zscaleSEXP, SEXP maxsearchSEXP, SEXP maxheightSEXP, SEXP cache_maskSEXP, SEXP progbarSEXP) {
+NumericMatrix rayshade_cpp(double sunangle, NumericVector anglebreaks, NumericMatrix& heightmap, NumericMatrix& addressmap, NumericMatrix& lengthmap, NumericMatrix& pointcloud, double zscale, double maxsearch, double maxheight, const NumericMatrix cache_mask, double height, bool progbar);
+RcppExport SEXP _rPET_rayshade_cpp(SEXP sunangleSEXP, SEXP anglebreaksSEXP, SEXP heightmapSEXP, SEXP addressmapSEXP, SEXP lengthmapSEXP, SEXP pointcloudSEXP, SEXP zscaleSEXP, SEXP maxsearchSEXP, SEXP maxheightSEXP, SEXP cache_maskSEXP, SEXP heightSEXP, SEXP progbarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,15 +39,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type maxsearch(maxsearchSEXP);
     Rcpp::traits::input_parameter< double >::type maxheight(maxheightSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix >::type cache_mask(cache_maskSEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
     Rcpp::traits::input_parameter< bool >::type progbar(progbarSEXP);
-    rcpp_result_gen = Rcpp::wrap(rayshade_cpp(sunangle, anglebreaks, heightmap, addressmap, lengthmap, pointcloud, zscale, maxsearch, maxheight, cache_mask, progbar));
+    rcpp_result_gen = Rcpp::wrap(rayshade_cpp(sunangle, anglebreaks, heightmap, addressmap, lengthmap, pointcloud, zscale, maxsearch, maxheight, cache_mask, height, progbar));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rPET_lambshade_cpp", (DL_FUNC) &_rPET_lambshade_cpp, 2},
-    {"_rPET_rayshade_cpp", (DL_FUNC) &_rPET_rayshade_cpp, 11},
+    {"_rPET_rayshade_cpp", (DL_FUNC) &_rPET_rayshade_cpp, 12},
     {NULL, NULL, 0}
 };
 

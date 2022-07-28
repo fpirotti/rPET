@@ -14,7 +14,7 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.0
-Imports:  
+Imports: 
     insol,
     terra,
     magrittr,
@@ -25,7 +25,9 @@ Imports:
     DBI,
     progress,
     Rcpp,
-    scales
+    scales,
+    data.table,
+    shinyjs
 Suggests: 
     knitr,
     viridis,
@@ -36,8 +38,7 @@ Suggests:
     plotrix,
     bigmemory,
     bigstatsr,
-    VoxR,
-    rayshader,
+    VoxR, 
     raster,
     leaflet,
     leaflet.extras,

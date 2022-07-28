@@ -2,26 +2,100 @@ library(terra)
 library(insol)
 library(lidR)
 library(rPET)
-
+library(gifski)
 ## read voxellized point cloud from lastools using LidR
 ## MUST USE a POINT CLOUD AND A DTM SURFACE!!!! convert dtm to heightmap then map all points from
 ## point cloud to each cell . Z vaues from point cloud get linearized to a single vector,
 ## and values of heightmap substitute Z to index of
 ## doti <- function(heightgrid, pointcloud, sunelevation, sunangle)
-zscale<-1; sunelevation=45; sunangle=200; sunaltitude<-sunelevation;
-xyz<-  lidR::readLAS("data-raw/voxel_villabolasco_fixed2DTM_light.laz", select = "XYZ")
+zscale<-1; sunelevation=90; sunangle=200; sunaltitude<-sunelevation;
+xyz<-  lidR::readLAS("data-raw/voxel_villabolasco_light.laz", select = "XYZ")
 pointcloud<-xyz@data
 PointCloud3D <- pointcloud
 
 heightraster<-"data-raw/bolasco_DTM_1m.tif"
+Sys.Date()
+Sys.Date()+1
 
-rs <- rPET::ray_shade(heightraster, PointCloud3D, sunangle = 40, onlyprepare = F)
+makeplot <- function(){
+
+  ss<-seq(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1), by="min")
+  dd <- data.frame(insol::sunpos(insol::sunvector(insol::JD(ss), 46, 11.9701, 0)))
+  dd$date <- ss
+  dd2<-dd[dd$zenith<84,]
+  dd3 <- dd2[as.integer(rownames(dd2))%%8==0, ]
+  dd3$date <- substr(dd3$date, 1, 16)
+  nn <- 0
+  totnn <- nrow(dd3)
+
+  apply( dd3, 1, function(sp){
+
+    sunangle = as.numeric(sp[[1]])
+    sunaltitude = 90 - as.numeric(sp[[2]])
+    rs <- rPET::ray_shade(heightraster, PointCloud3D, sunangle = sunangle,zscale = 1,   #onlyprepare = TRUE,
+                          sunaltitude = sunaltitude,
+                          makeVoxelGrid = FALSE, lambert = TRUE)
+
+    rs %>%
+      # rayshader::sphere_shade() %>%
+      # rayshader::add_overlay(
+          # rayshader::generate_altitude_overlay(
+            # rayshader::raster_to_matrix( terra::rast(rPET::DATASET.bolasco$dtm)), 0, 0) )   %>%
+      rayshader::plot_map(  )
+      text(100,480,sp[[3]], cex=0.8)
+
+  })
+
+}
+
+tt<-terra::rast(heightraster)
+save_gif(makeplot(), "gif_file.gif", ncol(tt), nrow(tt),delay = 0.1, loop = FALSE,  res = 144)
+
+e<-environment(rPET::ray_shade)
+e$globals$pointcloud.cellsHeightMap.m
+rs.rast <- rPET::matrix2raster(rs)
+plot(rs.rast)
 
 
-
-
-
+summary(rs)
 rs %>% rayshader::plot_map()
+
+
+
+
+
+rs2 <- rayshader::ray_shade( heightmap = e$globals$heightmapdsm , sunangle = 100,
+                             anglebreaks = seq(14,19, by=1), onlyprepare = FALSE,
+                      makeVoxelGrid = FALSE, lambert = FALSE)
+
+rs2 %>% rayshader::plot_map()
+rs.rast2 <- rPET::matrix2raster(rs2)
+plot(rs.rast2)
+
+
+rayshader::raster_to_matrix()
+summary( as.numeric(rs))
+e<-environment(rPET::ray_shade)
+summary(e$globals$addressmap)
+plot(e$globals$addressraster)
+
+View(e$globals$pointcloud.cellsHeightMap.m)
+
+lasheader <- lidR::LASheader(round(e$globals$voxelSpace,2))
+
+las <- lidR::LAS(e$globals$voxelSpace, header =  lasheader)
+lidR::writeLAS(las,"voxel.laz")
+
+write.csv(round(e$globals$voxelSpace,2), "voxel.csv" )
+x <- y <- z <- seq(-2, 2, length.out = 70)
+xyz <- mesh(x, y, z)
+F <- with(xyz, log(x^2 + y^2 + z^2 +
+                     10*(x^2 + y^2) * (y^2 + z^2) ^2))
+voxel3D(PointCloud3D$X, PointCloud3D$Y, PointCloud3D$Z, F, level = 4, pch = ".", cex = 5)
+
+
+
+
 
 e<-environment(rPET::ray_shade)
 plot(e$pkg.globals$addressraster)

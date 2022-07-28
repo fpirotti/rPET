@@ -13,11 +13,15 @@ ray_shade(
   lambert = TRUE,
   zscale = 1,
   multicore = FALSE,
+  height = 1.5,
   cache_mask = NULL,
   shadow_cache = NULL,
   progbar = interactive(),
   anglebreaks = NULL,
+  useClass = TRUE,
   onlyprepare = FALSE,
+  makeVoxelGrid = FALSE,
+  force = FALSE,
   ...
 )
 }
@@ -46,7 +50,9 @@ of meters and the grid values are separated by 10 meters, \code{zscale} would be
 \item{multicore}{Default \code{FALSE}. If \code{TRUE}, multiple cores will be used to compute the shadow matrix. By default, this uses all cores available, unless the user has
 set \code{options("cores")} in which the multicore option will only use that many cores.}
 
-\item{cache_mask}{Default \code{NULL}. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.}
+\item{height}{Default \code{1.5}. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.}
+
+\item{cache_mask}{Default \code{NULL}. Height from the ground plane for which to calculate the shade.}
 
 \item{shadow_cache}{Default \code{NULL}. The shadow matrix to be updated at the points defined by the argument \code{cache_mask}.
 If present, this will only compute the raytraced shadows for those points with value \code{1} in the mask.}
@@ -57,7 +63,15 @@ If present, this will only compute the raytraced shadows for those points with v
 Use this instead of \code{sunaltitude} to create a softer shadow by specifying a wider light. E.g. \code{anglebreaks = seq(40,50,by=0.5)} creates a light
 10 degrees wide, as opposed to the default}
 
+\item{useClass}{logical Default  \code{TRUE}.
+Works only if you are using a LAS/LAZ point cloud, as it will use the standard classification values
+if available in the file (see LAS SPECIFICATION VERSION 1.4 – R6 15 August 2011 [http://www.asprs.org]{http://www.asprs.org}{target="_blank"} . Helpful if you want to have almost real time rendering and do not want the first calculation to take too much time (see rPET::solarApp() )}
+
 \item{onlyprepare}{Default  \code{FALSE} if you only want to cache the data structure. Helpful if you want to have almost real time rendering and do not want the first calculation to take too much time (see rPET::solarApp() )}
+
+\item{makeVoxelGrid}{Default  \code{FALSE}  will create a voxel space with the same resolution of cubes as the 2d resolution of the \code{heightrasterFile} DTM grid. The result will be saved in the global environment as \code{globals$voxelSpace}}
+
+\item{force}{Default  \code{FALSE}  force data preparation. If false and if data has already been prepared, it will use the prepared data.}
 
 \item{...}{Additional arguments to pass to the \code{makeCluster} function when \code{multicore=TRUE}.}
 }
@@ -66,7 +80,8 @@ Matrix of light intensities at each point.
 }
 \description{
 Calculates shadow map for a elevation matrix by propagating rays from each matrix point to the light source(s),
-lowering the brightness at each point for each ray that intersects the surface.
+lowering the brightness at each point for each ray that intersects the surface. A lot of by-products are saved in the global
+package environment accessible by calling it environment(rPET::ray_shade).
 }
 \examples{
 #First we ray trace the Monterey Bay dataset.

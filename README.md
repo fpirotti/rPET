@@ -7,7 +7,8 @@
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/rPET)](https://CRAN.R-project.org/package=rPET)
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/fpirotti/rPET/workflows/R-CMD-check/badge.svg)](https://github.com/fpirotti/rPET/actions)
 <!-- badges: end -->
 
@@ -15,17 +16,32 @@ The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) adapted from Edouard Walther (AREP, France) and Quentin Goestchel
 (ENS Paris-Saclay, France) based on: Peter Hoeppe s PET fortran code,
 from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
- 
-Solar illumination is simulated at points in space using a 3D model 
-in voxel structure and a ray-casting method.
-  
-<img src="man/figures/readme1.png" style="width:400px; max-width: 40% !important;"/>
-Figure 1. Example over a UAV lidar flight with 5000 points per square meter.
+
+Solar illumination is simulated at points in space using a 3D model in
+voxel structure and a ray-casting method.
+
+<video width="354" height="488" autoplay>
+<source src="man/figures/sim.mp4" type="video/mp4">
+
+Your browser does not support the video tag. </video>
+
+<img src="man/figures/readme1.png"   style="width:100%; max-width: 400px !important;"/>
+Figure 1. Example over a UAV lidar flight with 5000 points per square
+meter.
+
+<img src="man/figures/readme1.png"   style="width:100%; max-width: 400px !important;"/>
+Figure 1. Example over a UAV lidar flight with 5000 points per square
+meter.
+
+the RayShader function was taken partly from the work of
+<a href="https://github.com/tylermorganwall/rayshader" target="_blank">tylermorganwal’s rayshader for R</a>
+but adapted to point clouds. For more detail see [Pirotti et
+al. publication](https://github.com/tylermorganwall/rayshader "Taylemoraganwal Rayshader")
 
 ## Installation
 
-**NOT YET AVAILABLE ON CRAN** You can install the released version of rPET from
-[CRAN](https://CRAN.R-project.org) with:
+**NOT YET AVAILABLE ON CRAN** You can install the released version of
+rPET from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
 install.packages("rPET")

@@ -7,18 +7,25 @@
 #' @examples
 #' #rPET::solarApp()
 solarApp <- function() {
+
   requireNamespace("terra", quietly = TRUE)
   requireNamespace("plotrix", quietly = TRUE)
   requireNamespace("magrittr", quietly = TRUE)
   requireNamespace("RPostgreSQL", quietly = TRUE)
   options(digits = 12)
-  options(rgl.useNULL = TRUE)
-  rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction)
+  # options(rgl.useNULL = TRUE)
+
+  # rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction)
   dtm <- terra::rast(rPET::DATASET.bolasco$dtm)
   dsm <- raster::raster(terra::rast(rPET::DATASET.bolasco$dsm))
   rast.chm <- terra::rast(rPET::DATASET.bolasco$chm)
+  PointCloud3D <- rPET::DATASET.bolasco$pointcloud
 
-
+  RET<-ray_shade(dtm, PointCloud3D, onlyprepare = TRUE  )
+  if(is.null(RET)){
+    message("Leaving web app as the data preparation did not go well...")
+    return(NULL)
+  }
 
   tryCatch({
     drv <- DBI::dbDriver("PostgreSQL")
@@ -32,15 +39,7 @@ solarApp <- function() {
   })
 
   tallVegetationMask <- NULL
-  # cellids<-terra::cells(rast.gap)
-  #mm <- leaflet::leaflet()  %>% leaflet::addTiles()
-  # cls <- terra::cellFromXY(dsm, xyz@data[,1:2])
-  # df <- data.frame(ids = cls, Z=xyz@data[,3])
-  # final.dsm <- df %>% dplyr::group_by(ids)  %>% dplyr::summarise(z=max(Z))
-  # dsm[final.dsm$ids] <- final.dsm$z
-  # plot(dsm)
-  # terra::writeRaster(dsm, "data-raw/bolasco_dsm_1m.tif")
-  #And convert it to a matrix:
+
   elmat <- rayshader::raster_to_matrix(dsm)
 
 
@@ -120,68 +119,20 @@ solarApp <- function() {
     return(x * (180.0 / M_PI))
 
   }
-  pos2image <- function(zenith,
-                        azimuth ,
-                        type = "eqa",
-                        size = 180) {
-    M_PI <- pi
-    zenith <- deg2rad(zenith)
-    azimuth <- deg2rad(azimuth)
-    if (type == "eqa") {
-      # equisolid (equal area)
-      x = (sin(zenith / 2.0) * cos(azimuth)) / sin(M_PI / 4.0)
 
-      y = (sin(zenith / 2.0) * sin(azimuth)) / sin(M_PI / 4.0)
+## UI ---------
+  ui <- shiny::fluidPage(
 
-    } else  if (type == "ort") {
-      # orthographic
-      x = (sin(zenith)  * cos(azimuth))
+    shinyjs::useShinyjs(),
+    tags$head(
+      tags$style(HTML("
+      div.red { background-color: red; }
+      div.blue { background-color: blue; }
+    "))
+    ),
 
-      y = (sin(zenith)  * sin(azimuth))
-
-    } else  if (type == "eqd") {
-      # equidistant
-      x =   (zenith * cos(azimuth)) / (M_PI / 2.0)
-
-      y =   (zenith * sin(azimuth)) / (M_PI / 2.0)
-
-    } else  if (type == "str") {
-      # stereografic
-      x = (tan(zenith / 2.0) * 2.0 * cos(azimuth)) / (tan(M_PI / 4.0) *
-                                                        2.0)
-
-      y = (tan(zenith / 2.0) * 2.0 * sin(azimuth)) / (tan(M_PI / 4.0) *
-                                                        2.0)
-
-    } else  if (type == "rct") {
-      # Perspective (rectilinear)
-      x = (tan(zenith / 2.0) * 2.0 * cos(azimuth)) / (tan(M_PI / 4.0) *
-                                                        2.0)
-
-      y = (tan(zenith / 2.0) * 2.0 * sin(azimuth)) / (tan(M_PI / 4.0) *
-                                                        2.0)
-
-    } else {
-      stop("projection not correct, you have to use type=eqa|ort|eqd|str|rct.")
-    }
-    x =  floor((size * x + size) / 2.0)
-    y =  floor((size * y + size) / 2.0)
-    list(x = x, y = y)
-  }
-  bbdf <- NULL
-  if (file.exists("tmp/FBMdatat.rds")) {
-    bbdf <- bigstatsr::big_attach("tmp/FBMdatat.rds")
-  } else   if (file.exists("../tmp/FBMdatat.rds")) {
-    bbdf <- bigstatsr::big_attach("../tmp/FBMdatat.rds")
-  } else {
-    warning(
-      "No file with sparse matrix of gap fraction from Hemispherical projection of above-ground elements"
-    )
-  }
-
-  ## UI ---------
-  ui <- shiny::fluidPage(shiny::fluidRow(
-    shiny::sidebarPanel(
+    shiny::fluidRow(
+     shiny::sidebarPanel(
       width = 6,
 
       shiny::fluidRow(
@@ -191,13 +142,14 @@ solarApp <- function() {
                                                        timepicker = T, value = Sys.time())
                       ),
         shiny::column(
-          width = 6,
-          shiny::fileInput(
-            "file1",
-            "Upload your raster (max 500x500)",
-            multiple = TRUE,
-            accept = c(".tif")
-          )
+          width = 3,
+          title="Force Sun Elevation",
+          numericInput("forceSunElev", "Zenith", NULL )
+        ),
+        shiny::column(
+          width = 3,
+          title="Force Sun Angle (Azimuth)",
+          numericInput("forceSunAngle", "Azimuth", NULL  )
         )
       ),
 
@@ -229,7 +181,7 @@ solarApp <- function() {
             "heightFromTerrain",
             label = "Height from terrain",
             min = 0.0,
-            max = 90.0,
+            max = 99990.0,
             value = 1.5
           )
         )
@@ -255,43 +207,14 @@ solarApp <- function() {
                   )
   ))
 
-
+## SERVER ----------
   server <- function(input, output, session) {
-    dsm.local <- dsm
-    rast.shade <- dsm.local
+    # dsm.local <- dsm
+    # rast.shade <- dsm.local
 
     rVals <- shiny::reactiveValues(
-      sunpos = c(0,90),
-      elmat = elmat
+      sunpos = c(0,90)
     )
-
-    shiny::observeEvent(input$file1, {
-                          shiny::req(input$file1)
-                          dsm.local <<- raster::raster(input$file1$datapath)
-                          if(raster::ncell(dsm.local) > 1E6){
-                            shiny::showNotification("Raster size is too big, limit to 1 million total pixels.", duration=20)
-                            file.remove(input$file1$datapath)
-                            return(NULL)
-                          }
-                          if(is.null(raster::proj4string(dsm.local)) || is.na(raster::proj4string(dsm.local)) ){
-                            shiny::showNotification("Raster CRS unknown.", duration=20)
-                            file.remove(input$file1$datapath)
-                            return(NULL)
-                          }
-
-                          bds <-
-                            raster::extent(
-                              raster::projectExtent(
-                                dsm.local,
-                                "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-                              )
-                            )
-                          rVals$elmat <-   rayshader::raster_to_matrix(dsm.local)
-
-                          rast.shade <<- dsm.local
-                          leaflet::leafletProxy('rastPlot2') %>%
-                            leaflet::fitBounds(bds@xmin, bds@ymin, bds@xmax, bds@ymax)
-                        })
 
 
     shiny::observeEvent({
@@ -299,41 +222,44 @@ solarApp <- function() {
       input$lat
       input$long
       },{
-        rVals$sunpos <- insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
-
+        dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
+        updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
+        updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
+        # rVals$sunpos <-
     })
 
 
-    # output$rastPlot1 <- shiny::renderPlot({
-    #   shiny::req( input$drawShade, input$bins )
-    #   sp <- sunpos()
-    #   # xy<-pos2image( sp[,2], sp[,1])
-    #   # id<-180*xy$y + xy$x
-    #   # rast.shade[ terra::cells(rast.gap) ] <- log10(bbdf[,id]+1)*-1
-    #   # terra::plot(rast.shade, col = viridis::turbo(n = 12), main = "Gap fraction (%)")
-    # })
+    shiny::observeEvent({
+      input$forceSunElev
+      input$forceSunAngle
+    },{
+      rVals$sunpos <- c(azimuth=input$forceSunAngle, zenith=input$forceSunElev)
+    })
 
     output$rastPlot2 <- leaflet::renderLeaflet(leaflet.object)
 
-    shiny::observeEvent({
-      rVals$sunpos
-      rVals$elmat
-      input$drawShade
-      } ,{
+    shiny::observeEvent(rVals$sunpos, {
+      print(rVals$sunpos)
+      shinyjs::addClass("drawShade", "red")
+    })
 
+    shiny::observeEvent(input$drawShade, {
       sp <- rVals$sunpos
+      print(sp)
       # shiny::req(input$drawShade,  sp)
       shiny::withProgress(message = "Computing rayshader...", {
         shiny::incProgress(0.1)
         rs <-
-          rayshader::ray_shade(
-            rVals$elmat,
+           ray_shade(
+            dtm,
+            PointCloud3D,
             zscale = 1,
-            multicore = F,
+            multicore = FALSE,
             lambert = input$lambert,
-            sunangle = sp[, 1],
-            sunaltitude = 90 - sp[, 2],
-            progbar = F
+            sunangle = sp[[1]],
+            sunaltitude = 90 - sp[[2]],
+            progbar = FALSE,
+            height = input$heightFromTerrain
           )
 
         shiny::incProgress(0.3, message = "Finished rayshade... drawing map")
@@ -410,14 +336,15 @@ solarApp <- function() {
         seq(as.POSIXct(input$bins),
             length = 2,
             by = '1 day')[2]
+
       days = insol::JD(seq(as.POSIXct(input$bins), as.POSIXct(dayafter), by =
                              'min'))
       # message(as.POSIXct(input$bins), as.POSIXct(dayafter))
       # scatterplot3d(sunvector(juneday,45,9,0),
       #               ylim=c(-1,1),zlim=c(0,1),pch=8,color='orange')
 
-      sp <-
-        insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
+      sp <- rVals$sunpos
+         #insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
       sps <-
         insol::sunpos(insol::sunvector((days), input$lat, input$long, 0))
 
@@ -433,8 +360,8 @@ solarApp <- function() {
       )
 
       plotrix::polar.plot(
-        90 - sp[, 2],
-        sp[, 1],
+        90 - sp[[2]],
+        sp[[1]],
         start = 90,
         clockwise = TRUE,
         rp.type = 's',
@@ -450,7 +377,8 @@ solarApp <- function() {
 
     })
   }
+
   shiny::shinyApp(ui, server)
 }
 # library(rPET)
-# solarApp()
+ # solarApp()
