@@ -19,11 +19,12 @@ from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
 
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.
+# Gallery / Cool things
  
 
 Mixture Variants:
 
-https://user-images.githubusercontent.com/6877923/115474571-03c75800-a23e-11eb-8096-8973aad5fa9f.mp4
+https://github.com/fpirotti/rPET/blob/master/man/figures/sim.mp4
 
 
 Earth Heightmap node:
