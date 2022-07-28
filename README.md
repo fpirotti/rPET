@@ -19,23 +19,9 @@ from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
 
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.
-# Gallery / Cool things
  
-
-Mixture Variants:
-
-https://github.com/fpirotti/rPET/blob/master/man/figures/sim.mp4
-
-
-Earth Heightmap node:
-
-https://user-images.githubusercontent.com/6877923/123006036-64e2e780-d3b7-11eb-922e-018994b32da5.mov
-
-https://user-images.githubusercontent.com/6877923/115474571-03c75800-a23e-11eb-8096-8973aad5fa9f.mp4
-<video src="https://github.com/fpirotti/rPET/blob/master/man/figures/sim.mp4" data-canonical-src="https://github.com/fpirotti/rPET/blob/master/man/figures/sim.mp4?width=354&height=488" controls="controls" muted="muted" style="max-height:640px;">
-</video>
  
-<img src="man/figures/readme1.png"   style="width:100%; max-width: 400px !important;"/>
+<img src="man/figures/readme1.png"   style="width:100%; max-width:400px !important;"/>
 Figure 1. Example over a UAV lidar flight with 5000 points per square
 meter.
 
