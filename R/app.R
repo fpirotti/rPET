@@ -11,42 +11,90 @@ solarApp <- function() {
   requireNamespace("terra", quietly = TRUE)
   requireNamespace("plotrix", quietly = TRUE)
   requireNamespace("magrittr", quietly = TRUE)
+  requireNamespace("lidR", quietly = TRUE)
   requireNamespace("RPostgreSQL", quietly = TRUE)
   options(digits = 12)
   # options(rgl.useNULL = TRUE)
 
-  # rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction)
-  dtm <- terra::rast(rPET::DATASET.bolasco$dtm)
-  dsm <- raster::raster(terra::rast(rPET::DATASET.bolasco$dsm))
-  rast.chm <- terra::rast(rPET::DATASET.bolasco$chm)
-  PointCloud3D <- rPET::DATASET.bolasco$pointcloud
+  if(!exists(".pkgenv", mode="environment")){
+    message("Environment does not exist, exiting")
+    return(NULL)
+  }
 
-  RET<-ray_shade(dtm, PointCloud3D, onlyprepare = TRUE  )
+  if(!exists("DATASET.bolasco", where = .pkgenv)){
+    message("Downloading Villa Bolasco Data using your Internet, should take less than a minute...")
+
+    .pkgenv$DATASET.bolasco <- tryCatch({
+      a <- list()
+      aa<-tempfile(fileext = ".laz")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/voxel_villabolasco_light.laz", aa)
+      a[["pointcloud"]] <- lidR::readLAS(aa)
+      file.remove(aa)
+      aa<-tempfile(fileext = ".tif")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_DTM_1m.tif", aa)
+      a[["dtm"]] <- terra::wrap(terra::rast(aa))
+      file.remove(aa)
+      aa<-tempfile(fileext = ".tif")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_chm_1m.tif", aa)
+      a[["chm"]] <- terra::wrap(terra::rast(aa))
+      file.remove(aa)
+      aa<-tempfile(fileext = ".tif")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_dsm_1m.tif", aa)
+      a[["dsm"]] <- terra::wrap(terra::rast(aa))
+      file.remove(aa)
+      aa<-tempfile(fileext = ".tif")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_GapFraction_2m.tif", aa)
+      a[["gap.fraction"]] <- terra::wrap(terra::rast(aa))
+      file.remove(aa)
+      a
+    },
+    error = function(e){
+      message("Downloading data failed!")
+      message("Error Message:")
+      message(e)
+      return(NULL)
+    })
+
+  }
+  if(is.null(.pkgenv$DATASET.bolasco)){
+    return(NULL)
+  }
+  # rast.gap <- terra::rast.pkgenv$DATASET.bolasco$gap.fraction)
+  dtm <- terra::rast(.pkgenv$DATASET.bolasco$dtm)
+
+  rast.chm <- terra::rast(.pkgenv$DATASET.bolasco$chm)
+  PointCloud3D <- .pkgenv$DATASET.bolasco$pointcloud
+
+  RET <- ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE  )
   if(is.null(RET)){
     message("Leaving web app as the data preparation did not go well...")
     return(NULL)
   }
 
-  tryCatch({
-    drv <- DBI::dbDriver("PostgreSQL")
-    con  <- RPostgreSQL::dbConnect(drv,
-                        dbname = "bolasco", user="marika.dagostini",
-                        host="postgis.docker", password="marika72Master")
-    print("Database Connected!")
-  },
-  error=function(cond) {
-    print("Unable to connect to Database.")
-  })
+  initDB <- function(){
+
+    con  <- tryCatch({
+      drv <- DBI::dbDriver("PostgreSQL")
+      RPostgreSQL::dbConnect(drv,
+                             dbname = "bolasco", user="marika.dagostini",
+                             host="postgis.docker", password="marika72Master")
+
+    },
+    error=function(cond) {
+      message("Unable to connect to Database.")
+    })
+    return(con)
+  }
+
 
   tallVegetationMask <- NULL
 
-  elmat <- rayshader::raster_to_matrix(dsm)
 
 
   bds <-
     raster::extent(
       raster::projectExtent(
-        dsm,
+        dtm,
         "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
       )
     )
@@ -124,8 +172,8 @@ solarApp <- function() {
   ui <- shiny::fluidPage(
 
     shinyjs::useShinyjs(),
-    tags$head(
-      tags$style(HTML("
+    shiny::tags$head(
+      shiny::tags$style(shiny::HTML("
       div.red { background-color: red; }
       div.blue { background-color: blue; }
     "))
@@ -141,22 +189,10 @@ solarApp <- function() {
                                                        "Date and Time:",
                                                        timepicker = T, value = Sys.time())
                       ),
-        shiny::column(
-          width = 3,
-          title="Force Sun Elevation",
-          numericInput("forceSunElev", "Zenith", NULL )
-        ),
-        shiny::column(
-          width = 3,
-          title="Force Sun Angle (Azimuth)",
-          numericInput("forceSunAngle", "Azimuth", NULL  )
-        )
-      ),
 
-      shiny::fluidRow(
 
         shiny::column(
-          width = 4,
+          width = 2,
           shiny::numericInput(
             "long",
             label = "Longitude",
@@ -166,7 +202,7 @@ solarApp <- function() {
           )
         ),
         shiny::column(
-          width = 4,
+          width = 2,
           shiny::numericInput(
             "lat",
             label = "Latitude",
@@ -176,14 +212,50 @@ solarApp <- function() {
           )
         ),
         shiny::column(
-          width = 4,
+          width = 2,
+          title="Height from terrain",
           shiny::numericInput(
             "heightFromTerrain",
-            label = "Height from terrain",
+            label = "Height",
             min = 0.0,
             max = 99990.0,
             value = 1.5
           )
+        )
+
+      ),
+
+      shiny::fluidRow(
+
+        shiny::column(
+          width = 2,
+          title="Force Sun Elevation",
+          shiny::numericInput("forceSunElev", "Zenith", NULL )
+        ),
+        shiny::column(
+          width = 2,
+          title="Force Sun Angle (Azimuth)",
+          shiny::numericInput("forceSunAngle", "Azimuth", NULL  )
+        ),
+        shiny::column(
+          width = 2,
+          title="Temperature",
+          shiny::numericInput("temp", "Air Temp.", NULL  )
+        ),
+        shiny::column(
+          width = 2,
+          title="Humidity",
+          shiny::numericInput("hum", "Humidity", NULL  )
+        ),
+        shiny::column(
+          width = 2,
+          title="Wind Speed",
+          shiny::numericInput("wind", "Wind", NULL  )
+        ),
+        shiny::column(
+          width = 2, style="margin-top:20px;",
+          title="Update variables",
+          shiny::actionButton("updateVars", "UPDATE", NULL  )
         )
       ),
       shiny::fluidRow(
@@ -213,8 +285,48 @@ solarApp <- function() {
     # rast.shade <- dsm.local
 
     rVals <- shiny::reactiveValues(
-      sunpos = c(0,90)
+      sunpos = c(0,90),
+      wsData = list(temp = NA,
+                    hum = NA,
+                    wind = NA)
     )
+
+    updateData<-function(){
+      con <- initDB()
+      if(inherits(con, "PostgreSQLConnection")){
+        dd <- RPostgreSQL::dbGetQuery(con, 'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1' )
+
+        rVals$wsData <- list(temp=round(dd$air_temperature,1),
+                             hum = round(dd$humidity,1),
+                             wind = round(dd$wind_speed,1) )
+        #
+        # updateNumericInput(inputId = "temp", value = wsData$temp )
+        # updateNumericInput(inputId = "hum", value = wsData$hum )
+        # updateNumericInput(inputId = "wind", value = wsData$wind )
+
+        RPostgreSQL::dbDisconnect(con)
+      }
+      shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
+                                       inputId = "bins", value=Sys.time())
+      dd<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 0))
+      shiny::updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
+      shiny::updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
+    }
+
+
+    shiny::observeEvent({
+      rVals$wsData
+    },{
+
+      shiny::updateNumericInput(inputId = "temp", value = rVals$wsData$temp )
+      shiny::updateNumericInput(inputId = "hum", value = rVals$wsData$hum )
+      shiny::updateNumericInput(inputId = "wind", value = rVals$wsData$wind )
+      # rVals$sunpos <-
+    })
+
+    shiny::observeEvent( input$updateVars,{
+       updateData()
+    })
 
 
     shiny::observeEvent({
@@ -223,8 +335,8 @@ solarApp <- function() {
       input$long
       },{
         dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
-        updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
-        updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
+        shiny::updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
+        shiny::updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
         # rVals$sunpos <-
     })
 

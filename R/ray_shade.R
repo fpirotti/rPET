@@ -159,7 +159,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
 
     message("2 / 4  Ordering data, might take a bit......")
     #ord<-order(pointcloud.cellsHeightMap$id, pointcloud.cellsHeightMap$Z)
-    data.table::setorder(pointcloud.cellsHeightMap, id, Z )
+    data.table::setorderv(pointcloud.cellsHeightMap, c("id", "Z")  )
     globals$pointcloud.cellsHeightMap.m <-  pointcloud.cellsHeightMap #pointcloud.cellsHeightMap[ order(id, Z)]
     # globals$pointcloud.cellsHeightMap.m<-as.matrix(pointcloud.cellsHeightMap)
 
@@ -168,32 +168,32 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
 
     if(makeVoxelGrid){
 
-      message("2b / 4  Making Voxel map...")
+      message("2b / 4  Making Voxel map NOT ACTIVE...")
 
-      pointcloud.cellsHeightMap$dZids <- as.integer(floor( pointcloud.cellsHeightMap$Z / mean(res(heightraster)) ))
-
-
-      dt <- data.table::data.table(na.omit(pointcloud.cellsHeightMap))
-
-
-      nn<-dt[, lapply( .SD, function(x, ...){length(x)}, na.rm=TRUE), by=c("id","dZids") ]
-      nndsm<-dt[, lapply( .SD, function(x, ...){max(x, na.rm=TRUE)}, na.rm=TRUE), by=c("id") ]
-      nn$N <-nn$Z
-      nn$Z <- nn$dZids*mean(res(heightraster))
-      xy <- rbind( terra::xyFromCell(heightraster, nn$id),
-                   terra::xyFromCell(heightraster, terra::cells(heightraster)) )
-
-
-      message("2c / 4  FINISHED Voxel map...")
-      globals$voxelSpace <- data.frame(X=xy[,1], Y=xy[,2],
-                              Z=c( nn$Z, heightraster[terra::cells(heightraster)][,1] ),
-                              N=c(nn$N, rep(99999, length(terra::cells(heightraster))) )
-                              )
-      globals$heightrasterdsm <- globals$heightraster
-      globals$heightrasterdsm[nndsm$id] <- nndsm$Z
-
-      heightmapdsm <- raster_to_matrix(globals$heightrasterdsm)
-      globals$heightmapdsm =  add_padding(heightmapdsm)
+      # pointcloud.cellsHeightMap$dZids <- as.integer(floor( pointcloud.cellsHeightMap$Z / mean(res(heightraster)) ))
+      #
+      #
+      # dt <- data.table::data.table(na.omit(pointcloud.cellsHeightMap))
+      #
+      #
+      # nn<-dt[, lapply( .SD, function(x, ...){length(x)}, na.rm=TRUE), by=c("id","dZids") ]
+      # nndsm<-dt[, lapply( .SD, function(x, ...){max(x, na.rm=TRUE)}, na.rm=TRUE), by=c("id") ]
+      # nn$N <-nn$Z
+      # nn$Z <- nn$dZids*mean(res(heightraster))
+      # xy <- rbind( terra::xyFromCell(heightraster, nn$id),
+      #              terra::xyFromCell(heightraster, terra::cells(heightraster)) )
+      #
+      #
+      # message("2c / 4  FINISHED Voxel map...")
+      # globals$voxelSpace <- data.frame(X=xy[,1], Y=xy[,2],
+      #                         Z=c( nn$Z, heightraster[terra::cells(heightraster)][,1] ),
+      #                         N=c(nn$N, rep(99999, length(terra::cells(heightraster))) )
+      #                         )
+      # globals$heightrasterdsm <- globals$heightraster
+      # globals$heightrasterdsm[nndsm$id] <- nndsm$Z
+      #
+      # heightmapdsm <- raster_to_matrix(globals$heightrasterdsm)
+      # globals$heightmapdsm =  add_padding(heightmapdsm)
 
     }
 

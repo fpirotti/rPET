@@ -18,11 +18,16 @@ knitr::opts_chunk$set(
 library(rPET)
 library(terra)
 library(viridis)
-rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction )
-terra::plot(rast.gap, col=viridis::turbo(n=12), main="GAP Fraction Villa Bolasco (%)" )
+# if(is.null(rPET::DATASET.bolasco$gap.fraction)){
+#    
+# } else {
+#   rast.gap <- terra::rast(rPET::DATASET.bolasco$gap.fraction )
+#   terra::plot(rast.gap, col=viridis::turbo(n=12), main="GAP Fraction Villa Bolasco (%)" )
+#   
+#   rast.gap <- terra::rast(rPET::DATASET.bolasco$chm )
+#   terra::plot(rast.gap, col=viridis::turbo(n=12), main="CHM (m)" )
+# }
 
-rast.gap <- terra::rast(rPET::DATASET.bolasco$chm )
-terra::plot(rast.gap, col=viridis::turbo(n=12), main="CHM (m)" )
 
 ```
 

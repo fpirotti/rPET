@@ -2,6 +2,9 @@
 
 export("%>%")
 export(PETcorrected)
+export(calcGT)
+export(calcMRT)
+export(calcMRT2)
 export(lamb_shade)
 export(matrix2raster)
 export(raster_to_matrix)
