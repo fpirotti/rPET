@@ -41,7 +41,7 @@ Sys.Date()+1
 
 makeplot <- function(datec=Sys.Date(), cutoffZenith=84){
 
-  vMRT<-Vectorize(rPET::calcMRT)
+  vMRT<-Vectorize(rPET::calcMRT2)
   vPET<-Vectorize(rPET::PETcorrected)
   if(is.na(datec)){
     ss<-seq(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1), by="min")
@@ -83,7 +83,7 @@ makeplot <- function(datec=Sys.Date(), cutoffZenith=84){
   res <- foreach( i = 1:nrow(dd4)) %do% {
 
     data<-as.list(dd4[i,])
-    browser()
+    # browser()
 
     sunangle = as.numeric(data$azimuth)
     sunaltitude = 90 - as.numeric(data$zenith)
@@ -94,17 +94,21 @@ makeplot <- function(datec=Sys.Date(), cutoffZenith=84){
 
     rs %>% rayshader::plot_map()
     rs.raster <- rPET::matrix2raster(rs)
-    terra::plot(rs.raster)
+    # terra::plot(rs.raster)
     ccc<-terra::cells(rs.raster)
     values <- rs.raster[ccc]
-    vMRT()
-    vPET<-Vectorize(rPET::calcMRT(Ta = data$air_temperature, WV=data$wind_speed) )
+    message("Calculating MRT")
+    mrt<-vMRT(Ta=data$air_temperature, Td=data$dew_point_temperature,
+         WV = data$wind_speed, S = data$solar_radiation_wm2,
+         Fdiff =values$lyr.1, Fd = 1-values$lyr.1, Z = data$zenith, P = data$pressure_mb  )
 
+    message("Calculating PET ... will take a while")
 
-    vPET<-Vectorize(rPET::PETcorrected)
-    res <- vPET(Tair = 36, Tmrt =  c(21, 40, -5, 60, 30, 60),
-                v_air =1, pvap = c(12, 2, 2, 21, 21, 2) )
-    res["PET",]
+    rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrt[[1]],
+                       v_air = data$wind_speed, pvap = data$humidity)
+
+    pet <- vPET(Tair = data$air_temperature, Tmrt =mrt, v_air = data$wind_speed, pvap = data$humidity )
+
   }
 
 
@@ -113,6 +117,9 @@ makeplot <- function(datec=Sys.Date(), cutoffZenith=84){
 
 tt<-terra::rast(heightraster)
 save_gif(makeplot(), "gif_file.gif", ncol(tt), nrow(tt),delay = 0.1, loop = FALSE,  res = 144)
+
+e<-environment("package:rPET")
+
 
 e<-environment(rPET::ray_shade)
 e$globals$pointcloud.cellsHeightMap.m

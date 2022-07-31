@@ -10,7 +10,8 @@ PETcorrected(
   v_air = 0.1,
   pvap = 21,
   M_activity = 80,
-  icl = 0.9
+  icl = 0.9,
+  onlypet = TRUE
 )
 }
 \arguments{
@@ -22,7 +23,12 @@ PETcorrected(
 
 \item{pvap}{numeric, vapour pressure as relative umidity in percentage, DEFAULT=21}
 
-\item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see
+\item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see}
+
+\item{icl}{numeric, Clothing level, DEFAULT 0.9}
+
+\item{onlypet}{boolean, default TRUE - returns only PET value instead of other
+values.
 \url{https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate}
 
 Below some values (met) - (1 met = 58.2 W/m² )
@@ -44,8 +50,6 @@ Below some values (met) - (1 met = 58.2 W/m² )
 \item Walking 4mph (6.4km/h): 3.8 met,  (221 W/m²)
 \item Heavy machine work: 4.0 met,  (233 W/m²)
 }}
-
-\item{icl}{numeric, Clothing level, DEFAULT 0.9}
 }
 \value{
 PET value

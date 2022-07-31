@@ -8,62 +8,19 @@
 #' #rPET::solarApp()
 solarApp <- function() {
 
-  requireNamespace("terra", quietly = TRUE)
-  requireNamespace("plotrix", quietly = TRUE)
-  requireNamespace("magrittr", quietly = TRUE)
-  requireNamespace("lidR", quietly = TRUE)
-  requireNamespace("RPostgreSQL", quietly = TRUE)
   options(digits = 12)
   # options(rgl.useNULL = TRUE)
-
-  if(!exists(".pkgenv", mode="environment")){
-    message("Environment does not exist, exiting")
-    return(NULL)
+  #
+  e<-environment(rPET::prepareData)
+  if(is.null(e$dataenv) ||
+     !is.data.frame(e$dataenv$pointcloud)||
+     !inherits(e$dataenv$dtm, "PackedSpatRaster") ){
+    ret<-rPET::prepareData()
+    if(!ret) return(NULL)
   }
-
-  if(!exists("DATASET.bolasco", where = .pkgenv)){
-    message("Downloading Villa Bolasco Data using your Internet, should take less than a minute...")
-
-    .pkgenv$DATASET.bolasco <- tryCatch({
-      a <- list()
-      aa<-tempfile(fileext = ".laz")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/voxel_villabolasco_light.laz", aa)
-      a[["pointcloud"]] <- lidR::readLAS(aa)
-      file.remove(aa)
-      aa<-tempfile(fileext = ".tif")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_DTM_1m.tif", aa)
-      a[["dtm"]] <- terra::wrap(terra::rast(aa))
-      file.remove(aa)
-      aa<-tempfile(fileext = ".tif")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_chm_1m.tif", aa)
-      a[["chm"]] <- terra::wrap(terra::rast(aa))
-      file.remove(aa)
-      aa<-tempfile(fileext = ".tif")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_dsm_1m.tif", aa)
-      a[["dsm"]] <- terra::wrap(terra::rast(aa))
-      file.remove(aa)
-      aa<-tempfile(fileext = ".tif")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_GapFraction_2m.tif", aa)
-      a[["gap.fraction"]] <- terra::wrap(terra::rast(aa))
-      file.remove(aa)
-      a
-    },
-    error = function(e){
-      message("Downloading data failed!")
-      message("Error Message:")
-      message(e)
-      return(NULL)
-    })
-
-  }
-  if(is.null(.pkgenv$DATASET.bolasco)){
-    return(NULL)
-  }
-  # rast.gap <- terra::rast.pkgenv$DATASET.bolasco$gap.fraction)
-  dtm <- terra::rast(.pkgenv$DATASET.bolasco$dtm)
-
-  rast.chm <- terra::rast(.pkgenv$DATASET.bolasco$chm)
-  PointCloud3D <- .pkgenv$DATASET.bolasco$pointcloud
+  # rast.gap <- terra::rastpkgenv$DATASET.bolasco$gap.fraction)
+  dtm <- terra::rast(e$dataenv$dtm)
+  PointCloud3D <- e$dataenv$pointcloud
 
   RET <- ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE  )
   if(is.null(RET)){
@@ -92,12 +49,12 @@ solarApp <- function() {
 
 
   bds <-
-    raster::extent(
-      raster::projectExtent(
+   as.list( terra::ext(
+      terra::project(
         dtm,
         "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
       )
-    )
+    ) )
 
 
   leaflet.object <-
@@ -153,7 +110,7 @@ solarApp <- function() {
     leaflet::setView(lng = 11.970140, lat = 46, zoom = 12)  %>%
     leafem::addMouseCoordinates() %>%
 
-    leaflet::fitBounds(bds@xmin, bds@ymin, bds@xmax, bds@ymax)
+    leaflet::fitBounds(bds$xmin , bds$ymin, bds$xmax, bds$ymax)
 
 
   M_PI <- pi
@@ -282,7 +239,7 @@ solarApp <- function() {
 ## SERVER ----------
   server <- function(input, output, session) {
     # dsm.local <- dsm
-    # rast.shade <- dsm.local
+    rast.shade <- terra::rast(e$dataenv$dtm)
 
     rVals <- shiny::reactiveValues(
       sunpos = c(0,90),
@@ -414,7 +371,7 @@ solarApp <- function() {
           leaflet::removeControl(layerId = 'myLegend') %>%
 
           leaflet::addRasterImage(
-            rast.shade,
+            raster::raster(rast.shade),
             colors = pal,
             group = "ShadowMap",
             opacity = 0.8
@@ -492,5 +449,6 @@ solarApp <- function() {
 
   shiny::shinyApp(ui, server)
 }
+
 # library(rPET)
  # solarApp()

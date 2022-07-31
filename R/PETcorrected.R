@@ -7,6 +7,8 @@
 #'@param v_air numeric, air speed meters per second, DEFAULT=0.1
 #'@param pvap numeric, vapour pressure as relative umidity in percentage, DEFAULT=21
 #'@param M_activity numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see
+#'@param onlypet boolean, default TRUE - returns only PET value instead of other
+#'values.
 #'    [https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate](https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate)
 #'
 #'Below some values (met) - (1 met = 58.2 W/m² )
@@ -39,7 +41,7 @@
 #' Tglobe <- 21
 #'
 #' PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
-PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, icl=0.9 ){
+PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, icl=0.9, onlypet=TRUE ){
   po <- 1013.25  # atmospheric pressure [hPa]
   p <- 1013.25  # real pressure [hPa]
   rob <- 1.06  # Blood density kg/L
@@ -513,7 +515,8 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, ic
 
   s<-  systemp(Tair, Tmrt, pvap, v_air, M_activity, icl)
   pet <-  pet(s$tc, s$tsk, s$tcl, Tair, s$esw)
-  pet
+  if(onlypet) return(pet$PET)
+  return(pet)
 }
 
 
