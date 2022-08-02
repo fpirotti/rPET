@@ -32,7 +32,7 @@ voxel structure and a ray-casting method.
 
 </video>
 
-<img src="man/figures/readme1.png" style="width:100%; max-width: 400px !important;"/>
+<img src="man/figures/readme1.png" style="width:300px; max-width: 400px !important;"/>
 <br>**Figure 1.** Example over a UAV lidar flight with 5000 points per
 square meter.
 
@@ -56,13 +56,4 @@ And the development version from [GitHub](https://github.com/) with:
 ``` r
 # install.packages("devtools")
 devtools::install_github("fpirotti/rPET")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(rPET)
-## basic example code
 ```

@@ -9,8 +9,8 @@ PETcorrected(
   Tmrt = 21,
   v_air = 0.1,
   pvap = 21,
-  M_activity = 80,
-  icl = 0.9,
+  M_activity = 81,
+  icl = 0.6,
   onlypet = TRUE
 )
 }
@@ -25,7 +25,7 @@ PETcorrected(
 
 \item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see}
 
-\item{icl}{numeric, Clothing level, DEFAULT 0.9}
+\item{icl}{numeric, Clothing level, DEFAULT 0.6}
 
 \item{onlypet}{boolean, default TRUE - returns only PET value instead of other
 values.

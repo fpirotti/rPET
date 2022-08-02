@@ -4,13 +4,14 @@
 \alias{calcMRT}
 \title{calcMRT}
 \usage{
-calcMRT(Tg = 21, WV = 0, Ta = 21)
+calcMRT(Tg = 21, WV = 0.1, Ta = 21)
 }
 \arguments{
 \item{Tg}{numeric, globe temperature in °C, DEFAULT=21}
 
-\item{WV}{numeric, air velocity at the level of the globe in meters
-per second , DEFAULT=0}
+\item{WV}{numeric, air velocity at the level of the globe in meters per second,
+DEFAULT=0.1
+method  is from globe temperature but is very sensible to wind speed (wind=0 the MRT >>>100)}
 
 \item{Ta}{numeric, Air temperature in °C, DEFAULT=21}
 }

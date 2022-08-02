@@ -11,6 +11,8 @@ solarApp <- function() {
   options(digits = 12)
   # options(rgl.useNULL = TRUE)
   #
+  requireNamespace("RPostgreSQL", quietly = TRUE)
+  requireNamespace("DBI", quietly = TRUE)
   e<-environment(rPET::prepareData)
   if(is.null(e$dataenv) ||
      !is.data.frame(e$dataenv$pointcloud)||
@@ -22,7 +24,7 @@ solarApp <- function() {
   dtm <- terra::rast(e$dataenv$dtm)
   PointCloud3D <- e$dataenv$pointcloud
 
-  RET <- ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE  )
+  RET <-  rPET::ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE  )
   if(is.null(RET)){
     message("Leaving web app as the data preparation did not go well...")
     return(NULL)
@@ -38,6 +40,7 @@ solarApp <- function() {
 
     },
     error=function(cond) {
+      message(cond)
       message("Unable to connect to Database.")
     })
     return(con)
@@ -71,13 +74,13 @@ solarApp <- function() {
     leaflet::addLayersControl(
       position = ("topright"),
       baseGroups = c("Blank", "OpenStreetMap", "BING"),
-      overlayGroups = c("ShadowMap", "ShadowMapTotal"),
+      overlayGroups = c("Shadow Map", "Comfort Index Map"),
       leaflet::layersControlOptions(autoZIndex = F, collapsed = F)
     ) %>%
 
     leaflet::showGroup("BING")   %>%
 
-    leaflet::showGroup("ShadowMap")   %>%
+    leaflet::showGroup("Shadow Map")   %>%
     leaflet::addScaleBar("bottomright") %>%
     leaflet::addMiniMap(tiles = "OpenStreetMap",
                         toggleDisplay = TRUE,
@@ -90,22 +93,22 @@ solarApp <- function() {
 
     }"
     ) %>%
-    leaflet::addLegend(
-      colors =  c(
-          "#30123BFF",
-          "#4686FBFF",
-          "#1AE4B6FF",
-          "#A2FC3CFF",
-          "#FABA39FF",
-          "#E4460AFF",
-          "#7A0403FF"
-        ) ,
-      title = "Shadow %",
-      labels = sprintf("%.2f",  (1 - ((1:7) / 7)) ),
-      opacity = 1,
-      position = "topleft",
-      layerId = "myLegend"
-    ) %>%
+    # leaflet::addLegend(
+    #   colors =  c(
+    #       "#30123BFF",
+    #       "#4686FBFF",
+    #       "#1AE4B6FF",
+    #       "#A2FC3CFF",
+    #       "#FABA39FF",
+    #       "#E4460AFF",
+    #       "#7A0403FF"
+    #     ) ,
+    #   title = "Shadow %",
+    #   labels = sprintf("%.2f",  (1 - ((1:7) / 7)) ),
+    #   opacity = 1,
+    #   position = "topleft",
+    #   layerId = "myLegend"
+    # ) %>%
 
     leaflet::setView(lng = 11.970140, lat = 46, zoom = 12)  %>%
     leafem::addMouseCoordinates() %>%
@@ -186,36 +189,79 @@ solarApp <- function() {
 
         shiny::column(
           width = 2,
-          title="Force Sun Elevation",
+          title="Sun Elevation from horizon ... 90-zenith (degrees)",
           shiny::numericInput("forceSunElev", "Zenith", NULL )
         ),
         shiny::column(
           width = 2,
-          title="Force Sun Angle (Azimuth)",
+          title="Sun Angle/Azimuth (degrees)",
           shiny::numericInput("forceSunAngle", "Azimuth", NULL  )
         ),
         shiny::column(
           width = 2,
-          title="Temperature",
-          shiny::numericInput("temp", "Air Temp.", NULL  )
+          title="Air Temperature (\u00b0C)",
+          shiny::numericInput("temp", "Temp.", NULL  )
         ),
         shiny::column(
           width = 2,
-          title="Humidity",
-          shiny::numericInput("hum", "Humidity", NULL  )
+          title="Relative Humidity (%)",
+          shiny::numericInput("hum", "Hum.", NULL  )
         ),
         shiny::column(
           width = 2,
-          title="Wind Speed",
+          title="Air velocity in (m/s)",
           shiny::numericInput("wind", "Wind", NULL  )
         ),
         shiny::column(
-          width = 2, style="margin-top:20px;",
-          title="Update variables",
-          shiny::actionButton("updateVars", "UPDATE", NULL  )
+          width = 2,
+          title="Solar radiation (Watt/m2)",
+          shiny::numericInput("radiation", "Rad.", NULL  )
+        )
+      ),
+
+      shiny::fluidRow(
+
+        shiny::column(
+          width = 6,
+          title="metabolic rate (met)",
+          shiny::selectInput("met", "Metab. Rate",   choices= list("Sleeping:  (0.7 met 41 W/m\u00b2)"=0.7,
+                                                                   "Reclining: (0.8 met 47 W/m\u00b2)"=0.8,
+                                                                   "Seated, Writing: (1 met 58.2 W/m\u00b2)"=0.8,
+                                                                   "Typing (1.1 met 64 W/m\u00b2)"=1.1,
+                                                                   "Standing, relaxed, seated: (1.2 met 70 W/m\u00b2)"=1.2,
+                                                                   "Walking slow: (1.4 met 81 W/m\u00b2)"=1.4,
+                                                                   "Driving a car: (1.5 met 87 W/m\u00b2)"=1.5,
+                                                                   "Walking medium speed (1.7 met 99 W/m\u00b2)"=1.8,
+                                                                   "Walking 2mph (3.2km/h): (2.0 met 116 W/m\u00b2)"=1.8,
+                                                                   "Light machine work: 2.2 met,  (128 W/m\u00b2)"=2.2,
+                                                                   "Walking 3mph (4.8km/h): 2.6 met,  (151 W/m\u00b2)"=2.6,
+                                                                   "House cleaning (2.7 met 157 W/m\u00b2)"=2.7,
+                                                                   "Driving, heavy vehicle:(3.2 met 186 W/m\u00b2)"=3.3,
+                                                                   "Dancing: (3.4 met 198 W/m\u00b2)"=3.4,
+                                                                   "Walking 4mph (6.4km/h): (3.8 met 221 W/m\u00b2)"=3.8,
+                                                                   "Heavy machine work: (4.0 met 233 W/m\u00b2)"=4),
+                             selected=1.4 )
+        ),
+        shiny::column(
+          width = 2,
+          title="clothing (clo) from 0 to 1 ",
+          shiny::numericInput("clot", "Cloth", 0.6  )
+        ),
+        shiny::column(
+          width = 4,
+          title="Select your comfort index",
+          shiny::selectInput("confind", "Index", choices = list("Predicted Mean Vote (PMV)"="pmv",
+                                                       "Standard Effective Temperature (SET)"="set",
+                                                       "Physiological Equivalent Temperature (PET)"="pet" ),
+                             selected = "pmv")
         )
       ),
       shiny::fluidRow(
+        shiny::column(
+          width = 4, style="margin-top:20px;",
+          title="Update physological and environmental variables",
+          shiny::actionButton("updateVars", "UPDATE", NULL  )
+        ),
         shiny::column( title="Color or grayscale",
                        width = 4, shinyWidgets::awesomeCheckbox("greyscale", "Greyscale", value = F)
         ),
@@ -241,45 +287,49 @@ solarApp <- function() {
     # dsm.local <- dsm
     rast.shade <- terra::rast(e$dataenv$dtm)
 
-    rVals <- shiny::reactiveValues(
-      sunpos = c(0,90),
-      wsData = list(temp = NA,
-                    hum = NA,
-                    wind = NA)
-    )
+    lsCond <- comf::createCond()
+
+    sunposition <- c(0,80)
 
     updateData<-function(){
       con <- initDB()
       if(inherits(con, "PostgreSQLConnection")){
         dd <- RPostgreSQL::dbGetQuery(con, 'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1' )
 
-        rVals$wsData <- list(temp=round(dd$air_temperature,1),
-                             hum = round(dd$humidity,1),
-                             wind = round(dd$wind_speed,1) )
-        #
-        # updateNumericInput(inputId = "temp", value = wsData$temp )
-        # updateNumericInput(inputId = "hum", value = wsData$hum )
-        # updateNumericInput(inputId = "wind", value = wsData$wind )
+         lsCond$ta<-dd$air_temperature
+         lsCond$trm<-dd$air_temperature
+         lsCond$rh<-dd$humidity
+         lsCond$tao<-dd$air_temperature
+         lsCond$rho<-dd$humidity
+         lsCond$vel<-dd$wind_speed
+         lsCond$met<-input$met
+         lsCond$clo<-input$clo
+         lsCond$pb <- dd$pressure_mb * 0.750062
+
 
         RPostgreSQL::dbDisconnect(con)
       }
+
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
-      dd<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 0))
-      shiny::updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
-      shiny::updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
+      sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 0))[1,]
+
+      shiny::updateNumericInput(inputId = "forceSunElev",value = round(sunposition[[2]]) )
+      shiny::updateNumericInput(inputId = "forceSunAngle",value = round(sunposition[[1]]) )
+      shiny::updateNumericInput(inputId = "temp", value = lsCond$ta )
+      shiny::updateNumericInput(inputId = "hum", value = lsCond$rh )
+      shiny::updateNumericInput(inputId = "wind", value = lsCond$vel )
+      shiny::updateNumericInput(inputId = "radiation", value = lsCond$vel )
+      shiny::updateNumericInput(inputId = "radiation", value = dd$solar_radiation_wm2 )
     }
 
 
-    shiny::observeEvent({
-      rVals$wsData
-    },{
-
-      shiny::updateNumericInput(inputId = "temp", value = rVals$wsData$temp )
-      shiny::updateNumericInput(inputId = "hum", value = rVals$wsData$hum )
-      shiny::updateNumericInput(inputId = "wind", value = rVals$wsData$wind )
-      # rVals$sunpos <-
+    shiny::observeEvent( input$confind,{
+      if(input$confind=="pet"){
+        shinyWidgets::show_alert("Warning", paste0(toupper(input$confind), "takes quite a long time to calculate") )
+      }
     })
+
 
     shiny::observeEvent( input$updateVars,{
        updateData()
@@ -294,7 +344,7 @@ solarApp <- function() {
         dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
         shiny::updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
         shiny::updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
-        # rVals$sunpos <-
+        sunposition <<- dd[1,]
     })
 
 
@@ -302,24 +352,32 @@ solarApp <- function() {
       input$forceSunElev
       input$forceSunAngle
     },{
-      rVals$sunpos <- c(azimuth=input$forceSunAngle, zenith=input$forceSunElev)
+      sunposition <<- c(azimuth=input$forceSunAngle, zenith=input$forceSunElev)
     })
 
     output$rastPlot2 <- leaflet::renderLeaflet(leaflet.object)
 
-    shiny::observeEvent(rVals$sunpos, {
-      print(rVals$sunpos)
-      shinyjs::addClass("drawShade", "red")
-    })
+
 
     shiny::observeEvent(input$drawShade, {
-      sp <- rVals$sunpos
-      print(sp)
+      shiny::req(input$updateVars)
+
+       lsCond$ta<<- input$temp
+       lsCond$trm<<-input$temp
+       lsCond$tr<<- input$temp
+       lsCond$rh<<- input$hum
+       lsCond$tao<<- input$temp
+       lsCond$rho<<- input$hum
+       lsCond$vel<<- input$wind
+       lsCond$met<<- as.numeric(input$met)
+       lsCond$clo<<-input$clot
+
+      sp <- sunposition
       # shiny::req(input$drawShade,  sp)
       shiny::withProgress(message = "Computing rayshader...", {
         shiny::incProgress(0.1)
         rs <-
-           ray_shade(
+          rPET::ray_shade(
             dtm,
             PointCloud3D,
             zscale = 1,
@@ -333,11 +391,33 @@ solarApp <- function() {
 
         shiny::incProgress(0.3, message = "Finished rayshade... drawing map")
 
-
         rast.shade[] <-  as.numeric(rs[nrow(rs):1 , ])
 
-        if(!input$lambert) rast.shade <- raster::as.factor(rast.shade)
+        # if(!input$lambert) rast.shade <- raster::as.factor(rast.shade)
 
+        shiny::incProgress(0.36, message = "Calculating MRT")
+
+        ccc<-terra::cells(rast.shade)
+        values<-rast.shade[ccc]
+        mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*values[,1]/(0.97*5.67E-8) )^0.25 -273.15
+        lsCond$tr<<-mrt
+
+        shiny::incProgress(0.36, message = paste0("Calculating ", toupper(input$confind) ) )
+
+        print("here1")
+
+        bb<-suppressWarnings(comf::calcPMV(ta = lsCond$ta,   tr = mrt,   vel = lsCond$ta,
+                          rh = lsCond$rh,
+                          clo = lsCond$clo, met = lsCond$met))
+
+        print("here2")
+        # if(input$confind=="pmv"){
+        # bb<-comf::calcComfInd(lsCond, request="pmv")
+        shiny::incProgress(0.4, message = paste0(" FINISHED Calculating ", toupper(input$confind) ) )
+        # }
+        rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
+        rs.pet[ccc]<-NA
+        rs.pet[ccc]<- bb
         if(input$greyscale){
           cols <-  c(
             "#000000",
@@ -361,25 +441,48 @@ solarApp <- function() {
         }
         pal <-
           leaflet::colorNumeric(
-           cols,
+            c(
+              "#000000",
+              "#333333",
+              "#666666",
+              "#999999",
+              "#BBBBBB",
+              "#DDDDDD",
+              "#FFFFFF"
+            ),
             raster::values(rast.shade),
             na.color = "transparent"
           )
 
+        print("here")
+        vvv<-c(-3,3 , rs.pet[ccc][,1])
+        pal2 <-
+          leaflet::colorNumeric(
+            cols,
+            vvv,
+            na.color = "transparent"
+          )
         leaflet::leafletProxy('rastPlot2') %>%
-          leaflet::clearGroup(group = 'ShadowMap') %>%
+          leaflet::clearGroup(group = 'Shadow Map') %>%
+          leaflet::clearGroup(group = 'Comfort Index Map') %>%
           leaflet::removeControl(layerId = 'myLegend') %>%
 
           leaflet::addRasterImage(
             raster::raster(rast.shade),
             colors = pal,
-            group = "ShadowMap",
+            group = "Shadow Map",
+            opacity = 0.8
+          ) %>%
+          leaflet::addRasterImage(
+            raster::raster(rs.pet),
+            colors = pal2,
+            group = "Comfort Index Map",
             opacity = 0.8
           ) %>%
           leaflet::addLegend(
-            colors = cols,
-            title = "Shadow %",
-            labels = sprintf("%.2f",  (1 - ((1:7) / 7)) ),
+            pal = pal2,
+            title = "Comfort Index",
+            values = vvv,
             opacity = 1,
             position = "topleft",
             layerId = "myLegend"
@@ -412,7 +515,7 @@ solarApp <- function() {
       # scatterplot3d(sunvector(juneday,45,9,0),
       #               ylim=c(-1,1),zlim=c(0,1),pch=8,color='orange')
 
-      sp <- rVals$sunpos
+      sp <- sunposition
          #insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
       sps <-
         insol::sunpos(insol::sunvector((days), input$lat, input$long, 0))

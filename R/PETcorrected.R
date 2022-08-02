@@ -30,7 +30,7 @@
 #' * Walking 4mph (6.4km/h): 3.8 met,  (221 W/m²)
 #' * Heavy machine work: 4.0 met,  (233 W/m²)
 #'
-#' @param icl numeric, Clothing level, DEFAULT 0.9
+#' @param icl numeric, Clothing level, DEFAULT 0.6
 #'
 #' @return PET value
 #' @export
@@ -41,7 +41,7 @@
 #' Tglobe <- 21
 #'
 #' PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
-PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=80, icl=0.9, onlypet=TRUE ){
+PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=81, icl=0.6, onlypet=TRUE ){
   po <- 1013.25  # atmospheric pressure [hPa]
   p <- 1013.25  # real pressure [hPa]
   rob <- 1.06  # Blood density kg/L

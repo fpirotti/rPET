@@ -9,6 +9,9 @@ prepareData(force = FALSE)
 \arguments{
 \item{force, }{boolean, DEFAULT = TRUE.}
 }
+\value{
+boolean with TRUE on success
+}
 \description{
 Prepares data by downloading and creating an environmental variable that you
 can access by e<-environment(rPET::prepareData) and e$dataenv

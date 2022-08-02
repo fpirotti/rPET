@@ -3,8 +3,10 @@
 #'
 #' @param Ta numeric, Air temperature in °C, DEFAULT=21
 #' @param Tg numeric, globe temperature in °C, DEFAULT=21
-#' @param WV numeric, air velocity at the level of the globe in meters
-#' per second , DEFAULT=0
+#' @param WV numeric, air velocity at the level of the globe in meters per second,
+#' DEFAULT=0.1
+#' method  is from globe temperature but is very sensible to wind speed (wind=0 the MRT >>>100)
+#'
 #'
 #' @return mean radiant temperature in °C
 #' @export
@@ -13,7 +15,7 @@
 #' Ta=30; WV=2.681666667;
 #' #Tg <- calcGT(Ta=Ta, Td=20.556, WV=WV, S=336, Fdiff=0.3333, Fd=0.6666, Z=38.44, P=992.83 )
 #' #calcMRT(Tg=21, WV=0, Ta=21 )
-calcMRT <- function(Tg=21, WV=0, Ta=21) {
+calcMRT <- function(Tg=21, WV=0.1, Ta=21) {
   a<-((Tg  +  273.15)^4+ 2.5E8 *(WV^0.6)*(Tg-Ta))^0.25-273.15
   a
 }
@@ -40,6 +42,32 @@ calcMRT2 <- function(Ta, Td , WV, S, Fdiff, Fd, Z, P ) {
   Tg <- calcGT(Ta, Td , WV, S, Fdiff, Fd, Z, P )
    ((Tg  +  273.15)^4+ 2.5E8 *(WV^0.6)*(Tg-Ta))^0.25-273.15
 }
+
+#' calcMRT3
+#' @description calculates mean radiant temperature using method from
+#' https://link.springer.com/content/pdf/10.1007/s00484-020-01900-5.pdf
+#'
+#' @param Ta numeric, Air temperature (°C)
+#' @param Td numeric, dew point temperature (°C)
+#' @param WV numeric, wind speed (meters per second)
+#' @param S numeric, solar radiation (Watts per meter squared)
+#' @param Fdiff numeric, diffuse solar radiation (Watts per meter squared)
+#' @param Fd  numeric, direct solar radiation (Watts per meter squared)
+#' @param Z  numeric, zenith angle of sun (degrees)
+#' @param P  numeric, pressure in millibars
+#' per second , DEFAULT=0
+#'
+#' @return mean radiant temperature in °C
+#' @export
+#'
+#' @examples
+#' Ta=30; WV=2.681666667;
+#'
+calcMRT3 <- function(Ta, Td , WV, S, Fdiff, Fd, Z, P ) {
+  Tg <- calcGT(Ta, Td , WV, S, Fdiff, Fd, Z, P )
+  ((Tg  +  273.15)^4+ 2.5E8 *(WV^0.6)*(Tg-Ta))^0.25-273.15
+}
+
 #' calcGT
 #' @description calculates Globe Temperature (Tg)
 #'

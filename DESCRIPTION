@@ -31,9 +31,9 @@ Imports:
     scales,
     data.table,
     shinyjs,
-    utils,
-    lidR,
-    lattice
+    utils, 
+    comf,
+    RPostgreSQL
 Suggests: 
     knitr,
     viridis,
@@ -44,10 +44,9 @@ Suggests:
     plotrix,
     bigmemory,
     bigstatsr,
-    VoxR, 
+    VoxR,
     raster,
     leaflet,
-    leaflet.extras,
-    RPostgreSQL
+    leaflet.extras
 VignetteBuilder: knitr 
 LinkingTo: Rcpp, progress, RcppArmadillo

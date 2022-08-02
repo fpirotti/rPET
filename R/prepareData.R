@@ -12,7 +12,6 @@ dataenv$gapfraction <- NA
 #'@description Prepares data by downloading and creating an environmental variable that you
 #'can access by e<-environment(rPET::prepareData) and e$dataenv
 #'@param force, boolean, DEFAULT = TRUE.
-#'@import lidR
 #'@return boolean with TRUE on success
 
 #'@export
@@ -28,10 +27,9 @@ prepareData = function(force=FALSE){
 
     out <- tryCatch({
       a <- list()
-      aa<-tempfile(fileext = ".laz")
-      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/voxel_villabolasco_light.laz", aa)
-      dd<- lidR::readLAS(aa)
-      dataenv$pointcloud <- dd@data[,1:3]
+      aa<-tempfile(fileext = ".rds")
+      utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/pointcloud.rds", aa)
+      dataenv$pointcloud <- readRDS(aa)
       file.remove(aa)
       aa<-tempfile(fileext = ".tif")
       utils::download.file("https://github.com/fpirotti/rPET/raw/master/data-raw/bolasco_DTM_1m.tif", aa)
