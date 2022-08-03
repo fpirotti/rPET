@@ -8,10 +8,12 @@
 #' #rPET::solarApp()
 solarApp <- function() {
 
+
   options(digits = 12)
   # options(rgl.useNULL = TRUE)
   #
   requireNamespace("RPostgreSQL", quietly = TRUE)
+  requireNamespace("magrittr", quietly = TRUE)
   requireNamespace("DBI", quietly = TRUE)
   e<-environment(rPET::prepareData)
   if(is.null(e$dataenv) ||
@@ -45,7 +47,53 @@ solarApp <- function() {
     })
     return(con)
   }
+  con<-initDB()
+  firstRecord <- RPostgreSQL::dbGetQuery(con,
+                                'select * from "public"."devices_parsed_stazione_meteo" order by timestamp  limit 1'
+  )
+  getMeteoStation <- function(dateTime=NULL){
 
+    con <- initDB()
+    if(inherits(con, "PostgreSQLConnection")){
+      if(is.null(dateTime)){
+        dd <- RPostgreSQL::dbGetQuery(con,
+                                      'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1'
+        )
+
+
+      } else {
+          dateTime<-tryCatch(as.Date(dateTime),
+                             error=function(e){
+                               message(e)
+                               NULL
+                             })
+          if(is.null(dateTime)){
+            return(NULL)
+          }
+         dd <- RPostgreSQL::dbGetQuery(con,
+                                      sprintf('select  * from "public"."devices_parsed_stazione_meteo" WHERE tswtz >= \'%s\'::timestamp AND tswtz <  \'%s\'::timestamp  order by timestamp desc  limit 1', dateTime, dateTime+1  )
+                                      #'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1'
+        )
+        print(dd)
+
+      }
+      lsCond$ta<<-dd$air_temperature
+      lsCond$trm<<-dd$air_temperature
+      lsCond$rh<<-dd$humidity
+      lsCond$tao<<-dd$air_temperature
+      lsCond$rho<<-dd$humidity
+      lsCond$vel<<-dd$wind_speed
+      lsCond$solar_radiation_wm2 <<- dd$solar_radiation_wm2
+      lsCond$pb <- dd$pressure_mb * 0.750062
+
+
+      RPostgreSQL::dbDisconnect(con)
+      return(lsCond)
+    } else {
+      return(NULL)
+    }
+
+  }
 
   tallVegetationMask <- NULL
 
@@ -147,7 +195,8 @@ solarApp <- function() {
         shiny::column(width = 6,
                       shinyWidgets::airDatepickerInput("bins",
                                                        "Date and Time:",
-                                                       timepicker = T, value = Sys.time())
+                                                       timepicker = T, value = Sys.time(),
+                                                       minDate = firstRecord$tswtz  )
                       ),
 
 
@@ -258,23 +307,24 @@ solarApp <- function() {
       ),
       shiny::fluidRow(
         shiny::column(
-          width = 4, style="margin-top:20px;",
+          width = 3,
           title="Update physological and environmental variables",
           shiny::actionButton("updateVars", "UPDATE", NULL  )
         ),
         shiny::column( title="Color or grayscale",
-                       width = 4, shinyWidgets::awesomeCheckbox("greyscale", "Greyscale", value = F)
+                       width = 3, shinyWidgets::awesomeCheckbox("greyscale", "Greyscale", value = F)
         ),
         shiny::column( title="Changes the intensity of the light at each point proportionally to the
                        dot product of the ray direction and the surface normal at
                        that point. Zeros out all values directed away from the ray.",
-          width = 4, shinyWidgets::awesomeCheckbox("lambert", "Lambertian", value = T)
+          width = 3, shinyWidgets::awesomeCheckbox("lambert", "Lambertian", value = T)
         ),
         shiny::column(
-          width = 4, shiny::actionButton("drawShade", "Draw shader")
+          width = 3, shinyWidgets::actionBttn("drawShade", "Draw Map",
+                                              style = "fill", size = "sm")
         ),
-        shiny::plotOutput("distPlot")
-      )
+      ),
+      shiny::plotOutput("distPlot")
     ),
 
     shiny::column(width = 6,
@@ -291,24 +341,12 @@ solarApp <- function() {
 
     sunposition <- c(0,80)
 
+
     updateData<-function(){
-      con <- initDB()
-      if(inherits(con, "PostgreSQLConnection")){
-        dd <- RPostgreSQL::dbGetQuery(con, 'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1' )
 
-         lsCond$ta<-dd$air_temperature
-         lsCond$trm<-dd$air_temperature
-         lsCond$rh<-dd$humidity
-         lsCond$tao<-dd$air_temperature
-         lsCond$rho<-dd$humidity
-         lsCond$vel<-dd$wind_speed
-         lsCond$met<-input$met
-         lsCond$clo<-input$clo
-         lsCond$pb <- dd$pressure_mb * 0.750062
-
-
-        RPostgreSQL::dbDisconnect(con)
-      }
+      lsCond <<- getMeteoStation()
+      lsCond$met<<-input$met
+      lsCond$clo<<-input$clo
 
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
@@ -320,7 +358,7 @@ solarApp <- function() {
       shiny::updateNumericInput(inputId = "hum", value = lsCond$rh )
       shiny::updateNumericInput(inputId = "wind", value = lsCond$vel )
       shiny::updateNumericInput(inputId = "radiation", value = lsCond$vel )
-      shiny::updateNumericInput(inputId = "radiation", value = dd$solar_radiation_wm2 )
+      shiny::updateNumericInput(inputId = "radiation", value = lsCond$solar_radiation_wm2 )
     }
 
 
@@ -341,10 +379,21 @@ solarApp <- function() {
       input$lat
       input$long
       },{
+
         dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
-        shiny::updateNumericInput(inputId = "forceSunElev",value = round(dd[[2]]) )
-        shiny::updateNumericInput(inputId = "forceSunAngle",value = round(dd[[1]]) )
+
         sunposition <<- dd[1,]
+        lsCond <<- getMeteoStation(input$bins )
+
+        lsCond$met<<-input$met
+        lsCond$clo<<-input$clo
+        shiny::updateNumericInput(inputId = "forceSunElev",value = round(sunposition[[2]]) )
+        shiny::updateNumericInput(inputId = "forceSunAngle",value = round(sunposition[[1]]) )
+        shiny::updateNumericInput(inputId = "temp", value = lsCond$ta )
+        shiny::updateNumericInput(inputId = "hum", value = lsCond$rh )
+        shiny::updateNumericInput(inputId = "wind", value = lsCond$vel )
+        shiny::updateNumericInput(inputId = "radiation", value = lsCond$vel )
+        shiny::updateNumericInput(inputId = "radiation", value = lsCond$solar_radiation_wm2 )
     })
 
 
@@ -360,7 +409,7 @@ solarApp <- function() {
 
 
     shiny::observeEvent(input$drawShade, {
-      shiny::req(input$updateVars)
+      shiny::req(input$temp, input$clot, input$met, input$hum)
 
        lsCond$ta<<- input$temp
        lsCond$trm<<-input$temp
@@ -552,6 +601,9 @@ solarApp <- function() {
 
   shiny::shinyApp(ui, server)
 }
-
+#
 # library(rPET)
- # solarApp()
+# library(magrittr)
+# library(leaflet)
+# library(RPostgreSQL)
+# solarApp()
