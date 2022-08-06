@@ -5,7 +5,8 @@ editor_options:
     wrap: 72
 output: 
         github_document: default
-        html_document: default
+        html_document: 
+          self_contained: no
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -25,6 +26,7 @@ The goal of rPET is to calculate Physiological Equivalent Temperature
 (ENS Paris-Saclay, France) based on: Peter Hoeppe s PET fortran code,
 from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
 
+<img src="man/figures/gif_filePMV.gif" />
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.
 

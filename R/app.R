@@ -53,6 +53,7 @@ solarApp <- function() {
   )
   getMeteoStation <- function(dateTime=NULL){
 
+    lsCond<- comf::createCond()
     con <- initDB()
     if(inherits(con, "PostgreSQLConnection")){
       if(is.null(dateTime)){
@@ -77,13 +78,13 @@ solarApp <- function() {
         print(dd)
 
       }
-      lsCond$ta<<-dd$air_temperature
-      lsCond$trm<<-dd$air_temperature
-      lsCond$rh<<-dd$humidity
-      lsCond$tao<<-dd$air_temperature
-      lsCond$rho<<-dd$humidity
-      lsCond$vel<<-dd$wind_speed
-      lsCond$solar_radiation_wm2 <<- dd$solar_radiation_wm2
+      lsCond$ta<-dd$air_temperature
+      lsCond$trm<-dd$air_temperature
+      lsCond$rh<-dd$humidity
+      lsCond$tao<-dd$air_temperature
+      lsCond$rho<-dd$humidity
+      lsCond$vel<-dd$wind_speed
+      lsCond$solar_radiation_wm2 <- dd$solar_radiation_wm2
       lsCond$pb <- dd$pressure_mb * 0.750062
 
 
@@ -602,8 +603,8 @@ solarApp <- function() {
   shiny::shinyApp(ui, server)
 }
 #
-# library(rPET)
-# library(magrittr)
-# library(leaflet)
-# library(RPostgreSQL)
-# solarApp()
+library(rPET)
+library(magrittr)
+library(leaflet)
+library(RPostgreSQL)
+solarApp()

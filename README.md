@@ -17,8 +17,9 @@ The goal of rPET is to calculate Physiological Equivalent Temperature
 (ENS Paris-Saclay, France) based on: Peter Hoeppe s PET fortran code,
 from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
 
-Solar illumination is simulated at points in space using a 3D model in
-voxel structure and a ray-casting method.
+<img src="man/figures/gif_filePMV.gif" /> Solar illumination is
+simulated at points in space using a 3D model in voxel structure and a
+ray-casting method.
 
 <video src="https://user-images.githubusercontent.com/1391292/181439231-4d9c09ff-c552-499a-8d95-6ea988079e55.mp4" data-canonical-src="https://user-images.githubusercontent.com/1391292/181439231-4d9c09ff-c552-499a-8d95-6ea988079e55.mp4?width=354&amp;height=488" controls="controls" muted="muted" autoplay style="max-height:640px;">
 </video>
