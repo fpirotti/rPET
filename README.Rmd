@@ -26,6 +26,8 @@ The goal of rPET is to calculate Physiological Equivalent Temperature
 (ENS Paris-Saclay, France) based on: Peter Hoeppe s PET fortran code,
 from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
 
+<label>Below an animation of mapped comfort index changing over a hot summer day in 
+Villa Bolasco [VARCITIES project](https://www.varcities.eu/){target=_blank}</label>
 <img src="man/figures/gif_filePMV.gif" />
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.

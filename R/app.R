@@ -603,8 +603,8 @@ solarApp <- function() {
   shiny::shinyApp(ui, server)
 }
 #
-library(rPET)
-library(magrittr)
-library(leaflet)
-library(RPostgreSQL)
-solarApp()
+# library(rPET)
+# library(magrittr)
+# library(leaflet)
+# library(RPostgreSQL)
+# solarApp()

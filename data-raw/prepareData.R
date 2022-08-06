@@ -155,17 +155,18 @@ rs.pet.brick<-terra::rast(rs.pet)
 rs.pet.brick<-terra::project(rs.pet.brick, "EPSG:4326" )
 terra::time(rs.pet.brick)<-dd4$tswtz
 names(rs.pet.brick)<-dd4$tswtz
-# terra::writeRaster(rs.pet.brick, "data-raw/outputrPET.tif")
+terra::writeRaster(rs.pet.brick, "data-raw/outputrPET.tif", overwrite=T)
 #
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
+# rs.pet.brick<-terra::project(rs.pet.brick, "EPSG:4326" )
 names(rs.pet.brick)<-dd4$tswtz
 cells<-terra::cellFromXY(object = rs.pet.brick, xy=matrix(c(11.9349170,45.6723575), nrow=1  ) )
 cells2<-terra::cellFromXY(object = rs.pet.brick, xy=matrix(c(11.9344278,45.6758574), nrow=1  ) )
 
-ff<-data.frame(PVM4816=t(rs.pet.brick[cells2])-3,
+ff<-data.frame(PVM4816=t(rs.pet.brick[cells2]),
                watt= dd4$solar_radiation_wm2,
                temp= dd4$air_temperature,
-               PVM4815=t(rs.pet.brick[cells])-3, time=as.POSIXct(names(rs.pet.brick)))
+               PVM4815=t(rs.pet.brick[cells]), time=as.POSIXct(names(rs.pet.brick)))
 ff4816<-spline(ff$time, ff$PVM4816)
 ff4815<-spline(ff$time, ff$PVM4815)
 ffwatt<-spline(ff$time, ff$watt)
@@ -177,13 +178,15 @@ fin<-data.frame(time=times, ffwatt=ffwatt$y,
                 temp=fftmp$y)
 
 png("data-raw/plotSynet.png", width=2000, height=1000, res=200)
+par(mar = c(5.1, 4.1, 4.1, 6))
 plot(x=fin$time, y=fin$ff4816, type="l", col="blue",
      sub="27 July 2022 - Station 4816 (green) and 4815 (blue) with solar radiation (red) W/m\u00b2 - black line is ideal comfort",
      xlab="Time", ylab="Predicted Mean Vote (PVM)", lwd=2)
 lines(x=fin$time, y=fin$ff4815, col="#00cc00", lwd=2)
-lines(x=fin$time, y=fin$ffwatt/100-2.1, col="red", lty=2, lwd=2)
+lines(x=fin$time, y=fin$ffwatt/100, col="red", lty=2, lwd=2)
 abline(h=0)
-axis(4, c(-3, 0, 3, 6, 8), c(0,300,600,900,1100) )
+axis(4, c(0, 3, 6, 9), c(0,300,600,900) )
+mtext("Solar radiation (W/m\u00b2)", side=4, line=2.5, cex.lab=1,las=3)
 dev.off()
 rs.pet.brick.sum<-sum(rs.pet.brick)
 rs.pet.brick.avg<-mean(rs.pet.brick)
