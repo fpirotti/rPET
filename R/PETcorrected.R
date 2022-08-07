@@ -41,7 +41,7 @@
 #' Tglobe <- 21
 #'
 #' PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
-# PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=81, icl=0.6, onlypet=TRUE ){
+PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1, pvap=21, M_activity=81, icl=0.6, onlypet=TRUE ){
   po <- 1013.25  # atmospheric pressure [hPa]
   p <- 1013.25  # real pressure [hPa]
   rob <- 1.06  # Blood density kg/L
@@ -551,12 +551,12 @@
       tx[enbal <= 0.0] <- tx[enbal <= 0.0] + xx
 
 #       tryCatch(
-        if(  any(  (enbal > 0.0  | enbal2 <= 0.0)    &  ( enbal < 0.0  |   enbal2 >= 0.0) ) ){
-          enbal2[ (enbal > 0.0  | enbal2 <= 0.0)    &   ( enbal < 0.0  |   enbal2 >= 0.0)   ]  <-  enbal[ (enbal > 0.0  | enbal2 <= 0.0)    &  (  enbal < 0.0  |   enbal2 >= 0.0) ]
-
-        }  else{
+        # if(  any(  (enbal > 0.0  | enbal2 <= 0.0)    &  ( enbal < 0.0  |   enbal2 >= 0.0) ) ){
+        #   enbal2[ (enbal > 0.0  | enbal2 <= 0.0)    &   ( enbal < 0.0  |   enbal2 >= 0.0)   ]  <-  enbal[ (enbal > 0.0  | enbal2 <= 0.0)    &  (  enbal < 0.0  |   enbal2 >= 0.0) ]
+        #
+        # }  else{
           count1  <-  count1 + 1
-        }
+        # }
       # , error=function(e){
       #    browser()
       #     break;
@@ -567,19 +567,19 @@
     return( list(tsk=tsk, enbal=enbal, esw=esw, ediff=ediff, PET=tx, tcl=tcl) )
   }
 
-  Ta=21; tmrt=runif(2) * 21
-  be<-  bench::bench_time( s<-  systemp(21, runif(10)*2 + 31) )
-  sapply(as.data.frame(t(as.data.frame(s))), function(x){
-    pet(as.numeric(x[[1]]), as.numeric(x[[2]]),
-        as.numeric(x[[3]]), 25, as.numeric(x[[4]]) )
-  })
-  # s<-  bench::bench_time( systemp(21, runif(10000) * 21, 10, 1) )
+  # Ta=21; tmrt=runif(2) * 21
+  # be<-  bench::bench_time( s<-  systemp(21, runif(10)*2 + 31) )
+  # sapply(as.data.frame(t(as.data.frame(s))), function(x){
+  #   pet(as.numeric(x[[1]]), as.numeric(x[[2]]),
+  #       as.numeric(x[[3]]), 25, as.numeric(x[[4]]) )
+  # })
+  # # s<-  bench::bench_time( systemp(21, runif(10000) * 21, 10, 1) )
   # s<-  systemp(Tair, Tmrt, pvap, v_air, M_activity, icl)
-  pet.res <-  pet(s$tc[[20]], s$tsk[[20]], s$tcl[[20]], 21, s$esw[[20]])
-   pet.res <-  pet(s$tc, s$tsk, s$tcl, 25, s$esw)
+  # pet.res <-  pet(s$tc[[20]], s$tsk[[20]], s$tcl[[20]], 21, s$esw[[20]])
+  #  pet.res <-  pet(s$tc, s$tsk, s$tcl, 25, s$esw)
   # if(onlypet) return(pet$PET)
   return(pet)
-# }
+}
 
 
 

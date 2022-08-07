@@ -12,6 +12,3 @@ a shiny application
 \description{
 solarApp
 }
-\examples{
-#rPET::solarApp()
-}
