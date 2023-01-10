@@ -73,20 +73,40 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
   nn <- 0
   totnn <- nrow(dd3)
   con <- initDB()
+  ddpyr <- RPostgreSQL::dbGetQuery(con,  sprintf('select timestamp,	device_id,	total_solar_radiation from "public"."devices_parsed_dl_pyr" WHERE timestamp >= \'%s\'::timestamp AND timestamp <  \'%s\'::timestamp  order by timestamp  limit 1000', datec, datec+1 ) )
+  # ddpyr$timestamp <-dd$tswtz
+
+  # RPostgreSQL::dbDisconnect(con)
+
   dd <- RPostgreSQL::dbGetQuery(con,  sprintf('select  * from "public"."devices_parsed_stazione_meteo" WHERE timestamp >= \'%s\'::timestamp AND timestamp <  \'%s\'::timestamp  order by timestamp  limit 100', datec, datec+1 ) )
   dd$timestamp <-dd$tswtz
 
   RPostgreSQL::dbDisconnect(con)
   dd <- data.table(dd)
+  ddpyr <- data.table(ddpyr)
+
+  ffff <- data.table::dcast(ddpyr, timestamp ~ device_id, value.var="total_solar_radiation"  )
+
+  ffff$`dl-pyr-sn-15373`<-NULL
+  ffff$`dl-pyr-sn-15375`<-NULL
+  ffff$`dl-pyr-sn-15376`<-NULL
+
+  summary(ffff)
   setkey(dd3, date)
   setkey(dd, timestamp)
+  setkey(ffff, timestamp)
   dd4<-dd[dd3, roll=TRUE,]
-  # dd5 <- as.data.frame(t(dd4))
+  dd5<-na.omit(ffff[,1:2])[dd4, roll=TRUE,]
+  dd6<-na.omit(ffff[,c(1,3)])[dd5, roll=TRUE,]
+  dd7<-na.omit(ffff[,c(1,4)])[dd6, roll=TRUE,]
 
+  final.climate.table<-dd7
 
    cs <- makeCluster(14)
    registerDoParallel(cs)
-  result <- foreach( i = 1:nrow(dd4)) %dopar% {
+   ccc<-terra::cells(terra::rast(heightraster))
+
+   result <- foreach( i = 1:nrow(dd4)) %dopar% {
 
     data<-as.list(dd4[i,])
     # browser()
@@ -101,6 +121,7 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
 
     # rs %>% rayshader::plot_map()
     rs.raster <- rPET::matrix2raster(rs)
+    return(rs.raster[ccc][,1])
     # terra::plot(rs.raster)
     ccc<-terra::cells(rs.raster)
     values <- rs.raster[ccc]
@@ -146,35 +167,74 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
 
 }
 
-rs.pet<-sapply(result, function(bb){
-   rs.pet <- terra::deepcopy(terra::rast(heightraster) )
+rs.pet.m<-sapply(result, function(bb){
+   rs.pet <- (terra::rast(heightraster) )
    rs.pet[ccc]<-bb
-   terra::project(rs.pet, "EPSG:4326" )
+   rs.pet
   })
-rs.pet.brick<-terra::rast(rs.pet)
+rs.pet.brick<-terra::rast(rs.pet.m)
 rs.pet.brick<-terra::project(rs.pet.brick, "EPSG:4326" )
 terra::time(rs.pet.brick)<-dd4$tswtz
 names(rs.pet.brick)<-dd4$tswtz
-terra::writeRaster(rs.pet.brick, "data-raw/outputrPET.tif", overwrite=T)
+terra::writeRaster(rs.pet.brick, "data-raw/outputrShadow.tif", overwrite=T)
 #
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
+rs.shade.brick<-terra::rast("data-raw/outputrShadow.tif")
 # rs.pet.brick<-terra::project(rs.pet.brick, "EPSG:4326" )
 names(rs.pet.brick)<-dd4$tswtz
+names(rs.shade.brick)<-dd4$tswtz
 cells<-terra::cellFromXY(object = rs.pet.brick, xy=matrix(c(11.9349170,45.6723575), nrow=1  ) )
 cells2<-terra::cellFromXY(object = rs.pet.brick, xy=matrix(c(11.9344278,45.6758574), nrow=1  ) )
 
-ff<-data.frame(PVM4816=t(rs.pet.brick[cells2]),
-               watt= dd4$solar_radiation_wm2,
-               temp= dd4$air_temperature,
-               PVM4815=t(rs.pet.brick[cells]), time=as.POSIXct(names(rs.pet.brick)))
+normalize <- function(dd){
+  (dd - min(dd))/ diff(range(dd))
+}
+
+ff<-data.frame(#ComfIndex4816=  t(rs.pet.brick[cells2]),
+              # SolarWatt= final.climate.table$solar_radiation_wm2,
+              # Temp_Watt= final.climate.table$air_temperature,
+              Model_Rad._4816=t(rs.shade.brick[cells2]),
+              Pyranometer4816= final.climate.table$`dl-pyr-sn-15374`,
+              Pyranometer4815= final.climate.table$`dl-pyr-sn-15377`,
+              # Pyrmeter_3= final.climate.table$`dl-pyr-sn-15379`,
+              # ComfIndex4815=t(rs.pet.brick[cells]),
+              Model_Rad._4815=t(rs.shade.brick[cells]),
+               time=as.POSIXct(names(rs.pet.brick)))
+fff<-ff
+for(i in names(fff)){
+  if(!is.numeric(fff[[i]])) next
+  fff[[i]]<-normalize(fff[[i]])
+}
+
+ff.m  <- data.table::melt(fff, id.vars = c("time" ) )
+ff.m$Type <-  as.factor(substr(ff.m$variable,1,nchar("Pyranometer") ))
+ff.m$Device <-  as.factor(substr(ff.m$variable,nchar("Pyranometer")+1, 11111))
+library(ggplot2)
+library(ggformula)
+
+
+png("data-raw/plotShadePyr.png", width=2000, height=1000, res=250)
+ggplot(ff.m) +
+  geom_spline(aes(x =  time,
+                  y = value,  colour = Device, lty=Type) ) +
+  scale_color_manual(values=c("#00cc00", "blue", "black"))  +
+  xlab("Time") + ylab("Normalized Values") +
+  theme_light()
+dev.off()
+
 ff4816<-spline(ff$time, ff$PVM4816)
 ff4815<-spline(ff$time, ff$PVM4815)
+ssff4816<-spline(ff$time, ff$shade4816)
+ssff4815<-spline(ff$time, ff$shade4815)
 ffwatt<-spline(ff$time, ff$watt)
 fftmp<-spline(ff$time, ff$temp)
 times<-as.POSIXct(ff4815$x, origin = "1970-01-01")
 
 fin<-data.frame(time=times, ffwatt=ffwatt$y,
-                ff4816=ff4816$y, ff4815=ff4815$y,
+                ff4816=ff4816$y,
+                ff4815=ff4815$y,
+                sff4816=ssff4816$y,
+                sff4815=ssff4815$y,
                 temp=fftmp$y)
 
 png("data-raw/plotSynet.png", width=2000, height=1000, res=200)
@@ -184,10 +244,28 @@ plot(x=fin$time, y=fin$ff4816, type="l", col="blue",
      xlab="Time", ylab="Predicted Mean Vote (PVM)", lwd=2)
 lines(x=fin$time, y=fin$ff4815, col="#00cc00", lwd=2)
 lines(x=fin$time, y=fin$ffwatt/100, col="red", lty=2, lwd=2)
+lines(x=fin$time, y=fin$sff4815*fin$ffwatt/100, col="#00cc00", lty=2, lwd=2)
+lines(x=fin$time, y=fin$sff4816*fin$ffwatt/100, col="blue", lty=2, lwd=2)
 abline(h=0)
 axis(4, c(0, 3, 6, 9), c(0,300,600,900) )
 mtext("Solar radiation (W/m\u00b2)", side=4, line=2.5, cex.lab=1,las=3)
 dev.off()
+
+
+png("data-raw/plotSynet.png", width=2000, height=1000, res=200)
+par(mar = c(5.1, 4.1, 4.1, 6))
+plot(x=fin$time, y=fin$ff4816, type="l", col="blue",
+     sub="27 July 2022 - Station 4816 (green) and 4815 (blue) with solar radiation (red) W/m\u00b2 - black line is ideal comfort",
+     xlab="Time", ylab="Predicted Mean Vote (PVM)", lwd=2)
+lines(x=fin$time, y=fin$ff4815, col="#00cc00", lwd=2)
+lines(x=fin$time, y=fin$ffwatt/100, col="red", lty=2, lwd=2)
+lines(x=fin$time, y=fin$sff4815*fin$ffwatt/100, col="#00cc00", lty=2, lwd=2)
+lines(x=fin$time, y=fin$sff4816*fin$ffwatt/100, col="blue", lty=2, lwd=2)
+abline(h=0)
+axis(4, c(0, 3, 6, 9), c(0,300,600,900) )
+mtext("Solar radiation (W/m\u00b2)", side=4, line=2.5, cex.lab=1,las=3)
+dev.off()
+
 rs.pet.brick.sum<-sum(rs.pet.brick)
 rs.pet.brick.avg<-mean(rs.pet.brick)
 rs.pet.brick.sd<- stdev(rs.pet.brick)

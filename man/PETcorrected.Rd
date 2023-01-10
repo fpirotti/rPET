@@ -8,10 +8,15 @@ PETcorrected(
   Tair = 21,
   Tmrt = 21,
   v_air = 0.1,
-  pvap = 21,
-  M_activity = 81,
-  icl = 0.6,
-  onlypet = TRUE
+  rh = 50,
+  M_activity = 80,
+  icl = 0.9,
+  bodyPosition = "standing",
+  sex = "male",
+  age = 35,
+  mbody = 75,
+  ht = 1.8,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -21,14 +26,23 @@ PETcorrected(
 
 \item{v_air}{numeric, air speed meters per second, DEFAULT=0.1}
 
-\item{pvap}{numeric, vapour pressure as relative umidity in percentage, DEFAULT=21}
+\item{rh}{numeric, vapour pressure as relative humidity in percentage, will be converted to hPa using the Clausius-Clapeyron equation, DEFAULT=50}
 
-\item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see}
+\item{M_activity}{numeric, metabolic rate (W/m²), DEFAULT=80 (about 1.4 met) see table below.}
 
-\item{icl}{numeric, Clothing level, DEFAULT 0.6}
+\item{icl}{numeric, clothing level in clot values, DEFAULT=0.9, 0=naked, 2=fully clothed with jackets and hats}
 
-\item{onlypet}{boolean, default TRUE - returns only PET value instead of other
-values.
+\item{bodyPosition}{character, can be "sitting", "crouching" or "standing", DEFAULT=standing}
+
+\item{sex}{character, male/female, DEFAULT=male}
+
+\item{age}{numeric, age of the person, DEFAULT=35}
+
+\item{mbody}{numeric, body weight in kg, DEFAULT=75}
+
+\item{ht}{numeric, person's height in meters DEFAULT=1.75}
+
+\item{verbose}{boolean, extra messages
 \url{https://en.wikipedia.org/wiki/Thermal_comfort#Metabolic_rate}
 
 Below some values (met) - (1 met = 58.2 W/m² )
@@ -58,9 +72,15 @@ PET value
 Calculate PET, Physiological Equivalent Temperature, check also https://comfort.cbe.berkeley.edu/
 }
 \examples{
-#Tmrt (mean radiant temperature - see )
-Tair <- c(10+(1:100)/5)
-Tglobe <- 21
+# Dataset from
+PETc <- PETcorrected(rPET::dataclim$Ta, rPET::dataclim$Tmrt,
+                     rPET::dataclim$v, rPET::dataclim$rh_perc)
 
-PETcorrected(Tair=21, Tmrt=21, v_air=0.1, pvap=50, M_activity=80, icl=0.9)
+# It can be applied vectorized, below and example with three air
+# temperatures and wind speeds:
+PETcorrected( Tair = 20, Tmrt=21, v_air=0, rh=20 )
+PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
+PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
+# a faster way:
+PETcorrected( Tair = c(20,25,30), Tmrt=21, v_air=c(0, 0.1, 0.5), rh=20 )
 }

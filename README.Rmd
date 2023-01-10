@@ -22,12 +22,87 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
-(PET) adapted from Edouard Walther (AREP, France) and Quentin Goestchel
-(ENS Paris-Saclay, France) based on: Peter Hoeppe s PET fortran code,
-from the VDI Norm 3787, Blatt 2 and on : Djordje Spasic s python code.
+(PET) from an R function, allowing to apply the function to vectors and 
+matrices. For more info see: 
+
+Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. Information Technologies for Real-Time Mapping of Human Well-Being Indicators in an Urban Historical Garden. Future Internet. 2022; 14(10):280. [https://doi.org/10.3390/fi14100280](https://doi.org/10.3390/fi14100280)
+
+Code is adapted from the work  below:
+
+E. Walther, Q. Goestchel,
+The P.E.T. comfort index: Questioning the model,
+Building and Environment,
+Volume 137,
+2018,
+Pages 1-10,
+ISSN 0360-1323,
+[https://doi.org/10.1016/j.buildenv.2018.03.054](https://doi.org/10.1016/j.buildenv.2018.03.054).
+
+Example:
+Three air temperatures and wind speeds:
+```{r eval=FALSE}
+PETcorrected( Tair = 20, Tmrt=21, v=0, rh=20 )
+
+PETcorrected( Tair = 25, Tmrt=21, v=0.1, rh=20 )
+
+PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
+
+```
+ 
+a faster way in vectorized format:
+```{r eval=FALSE}
+PETcorrected( Tair = c(20,25,30), Tmrt=21, v_air=c(0, 0.1, 0.5), rh=20 )
+```
+
+All possible combinations of three values from four factors:
+```{r eval=FALSE}
+
+values <- expand.grid(
+            Tair = c(20,25,30), Tmrt = c(20,25,30),
+            wind_speed = c(0, 0.5, 1),
+            rh = c(10, 50, 70)
+          )
+
+PETs <- PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
+              v_air=values$wind_speed, rh=values$rh )
+```
+
+Plotting combinations of 10 values from two factors,
+Air Temperature and Wind Speed:
+```{r }
+Tair_values <- (1:20)*2
+wind_speed_values <- (1:20)/4
+
+values.dry <- expand.grid(
+            Tair = Tair_values,  
+            wind_speed = wind_speed_values
+          )
+
+values.dry$PET <- rPET::PETcorrected( Tair = values.dry$Tair,  
+              v_air=values.dry$wind_speed, rh=10 )
+
+rbPal <- colorRampPalette(c('blue', 'green','red'))
+ 
+cuts <- cut(values.dry$PET,breaks = 10)
+Col <- rbPal(10)[as.numeric(cuts)]
+
+plot(values.dry$Tair, values.dry$wind_speed, xlab = "Air Temp. °C", 
+     ylab="Wind Speed (m/s)",   cex=1.8, col=Col, pch=16 )
+
+legend("topleft", title="PET",
+       legend = levels(cuts), 
+       pch=21, pt.cex=1.5, cex=0.8, 
+       y.intersp=1.1, 
+       pt.bg = rbPal(10), 
+       col = rbPal(10) )
+
+```
+
+
+## Mapping confort values 
 
 <label>Below an animation of mapped comfort index changing over a hot summer day in 
-Villa Bolasco [VARCITIES project](https://www.varcities.eu/){target=_blank}</label>
+Villa Bolasco [VARCITIES project - grant agreement n. ](https://www.varcities.eu/){target=_blank}</label>
 <img src="man/figures/gif_filePMV.gif" />
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.
@@ -61,3 +136,4 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("fpirotti/rPET")
 ```
+ 

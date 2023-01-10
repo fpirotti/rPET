@@ -105,7 +105,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     originalheightmap = heightmap
     heightmap =  add_padding(heightmap)
 
-  if(force || is.na(globals$pointcloud.cellsHeightMap.m) ||
+  if(force || is.null(nrow(globals$pointcloud.cellsHeightMap.m)) ||
      (!identical(PointCloud3D,globals$PointCloud3D) ||
      !identical(heightmap,globals$heightmap) ) ) {
 

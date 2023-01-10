@@ -6,7 +6,7 @@
 \alias{rPET-package}
 \title{rPET: Mapping Physiological Equivalent Temperature}
 \description{
-What the package does (one paragraph).
+Calculates Physiological Equivalent Temperature (PET). Given a 3D point cloud model it can map values accross a spatial grid.
 }
 \seealso{
 Useful links:

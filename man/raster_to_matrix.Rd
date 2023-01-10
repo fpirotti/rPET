@@ -16,15 +16,4 @@ Turns a raster into a matrix suitable for rayshader. From {rayshader} package
 }
 \examples{
 #Save montereybay as a raster and open using the filename.
-
-\donttest{
-if(length(find.package("rgdal", quiet = TRUE)) > 0) {
-temp_raster_filename = paste0(tempfile(),".tif")
-raster::writeRaster(raster::raster(t(montereybay)),temp_raster_filename)
-elmat = raster_to_matrix(temp_raster_filename)
-elmat \%>\%
- sphere_shade() \%>\%
- plot_map()
-}
-}
 }
