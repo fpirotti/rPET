@@ -1,11 +1,13 @@
 rPET - Physiological Equivalent Temperature
 ================
 
-- <a href="#examples" id="toc-examples">Examples</a>
+- <a href="#usage" id="toc-usage">Usage</a>
 - <a href="#mapping-confort-values"
   id="toc-mapping-confort-values">Mapping confort values</a>
 - <a href="#installation" id="toc-installation">Installation</a>
 - <a href="#references" id="toc-references">References</a>
+- <a href="#acknowledgements"
+  id="toc-acknowledgements">Acknowledgements</a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
@@ -22,7 +24,7 @@ The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) from an R function, allowing to apply the function to vectors and
 matrices. For more info see [references section](References):
 
-## Examples
+## Usage
 
 Three air temperatures and wind speeds:
 
@@ -62,26 +64,23 @@ wind_speed_values <- (1:20)/4
 
 values.dry <- expand.grid(
             Tair = Tair_values,  
-            wind_speed = wind_speed_values
+            windSpeed = wind_speed_values
           )
 
 values.dry$PET <- rPET::PETcorrected( Tair = values.dry$Tair,  
-              v_air=values.dry$wind_speed, rh=10 )
-
-rbPal <- colorRampPalette(c('blue', 'green','red'))
+              v_air=values.dry$windSpeed, rh=10 )
  
-cuts <- cut(values.dry$PET,breaks = 10)
-Col <- rbPal(10)[as.numeric(cuts)]
+topo.loess <- loess (PET ~ Tair * windSpeed, values.dry, degree = 2, span = 0.2)
+x <- seq (min (values.dry$Tair), max (values.dry$Tair), .05)
+y <- seq (min (values.dry$windSpeed), max (values.dry$windSpeed), .05)
+interpolated <- predict (topo.loess, expand.grid (Tair = x, windSpeed = y))
 
-plot(values.dry$Tair, values.dry$wind_speed, xlab = "Air Temp. °C", 
-     ylab="Wind Speed (m/s)",   cex=1.8, col=Col, pch=16 )
+image (x= x, y= y, z = interpolated, xlab = "Air Temp. °C", 
+     ylab="Wind Speed (m/s)", col=hcl.colors(100, "Temps") )
 
-legend("topleft", title="PET",
-       legend = levels(cuts), 
-       pch=21, pt.cex=1.5, cex=0.8, 
-       y.intersp=1.1, 
-       pt.bg = rbPal(10), 
-       col = rbPal(10) )
+contour(x, y, interpolated, levels = seq(0, 40, by = 2),
+        add = TRUE, col = "brown", labcex=0.8)
+title(main = "Estimated PET values ", font.main = 4)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -140,3 +139,26 @@ taken partly from the work of
 target="_blank">tylermorganwal’s rayshader for R</a> and adapted to
 point clouds. For more detail on point clouds see [Pirotti et al.,
 2022](https://doi.org/10.3390/fi14100280)
+
+## Acknowledgements
+
+<div>
+
+        <div style="width: 80px; float:left; height:100px; margin:0px">
+
+<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" alt="" style="margin-top:5px !important;">
+
+</div>
+
+<div
+style="width: *; float:left; height:100px; font-size:smaller; margin:5px; padding-left: 5px;">
+
+This project has received funding from the European Union’s Horizon 2020
+Research and Innovation programme, under grant agreement No 869505.
+<br>This page reflect only the authors’ view and the European
+Commission/EASME is not responsible for any use that may be made of the
+information it contains.
+
+</div>
+
+    </div>
