@@ -1,6 +1,12 @@
 rPET - Physiological Equivalent Temperature
 ================
 
+- <a href="#examples" id="toc-examples">Examples</a>
+- <a href="#mapping-confort-values"
+  id="toc-mapping-confort-values">Mapping confort values</a>
+- <a href="#installation" id="toc-installation">Installation</a>
+- <a href="#references" id="toc-references">References</a>
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
@@ -14,20 +20,11 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) from an R function, allowing to apply the function to vectors and
-matrices. For more info see:
+matrices. For more info see [references section](References):
 
-Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. Information
-Technologies for Real-Time Mapping of Human Well-Being Indicators in an
-Urban Historical Garden. Future Internet. 2022; 14(10):280.
-<https://doi.org/10.3390/fi14100280>
+## Examples
 
-Code is adapted from the work below:
-
-E. Walther, Q. Goestchel, The P.E.T. comfort index: Questioning the
-model, Building and Environment, Volume 137, 2018, Pages 1-10, ISSN
-0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
-
-Example: Three air temperatures and wind speeds:
+Three air temperatures and wind speeds:
 
 ``` r
 PETcorrected( Tair = 20, Tmrt=21, v=0, rh=20 )
@@ -106,24 +103,40 @@ ray-casting method.
 <br>**Figure 1.** Example over a UAV lidar flight with 5000 points per
 square meter.
 
-the RayShader function was taken partly from the work of
-<a href="https://github.com/tylermorganwall/rayshader"
-target="_blank">tylermorganwal’s rayshader for R</a> but adapted to
-point clouds. For more detail see [Pirotti et al.
-publication](https://github.com/tylermorganwall/rayshader "Taylemoraganwal Rayshader")
-
 ## Installation
 
-**NOT YET AVAILABLE ON CRAN** You can install the released version of
+<!-- **NOT YET AVAILABLE ON CRAN** You can install the released version of
 rPET from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
 install.packages("rPET")
 ```
+ -->
 
-And the development version from [GitHub](https://github.com/) with:
+Not yet available in CRAN: download and install the development version
+from [GitHub/fpirotti/rPET](https://github.com/fpirotti/rPET) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("fpirotti/rPET")
 ```
+
+## References
+
+Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. Information
+Technologies for Real-Time Mapping of Human Well-Being Indicators in an
+Urban Historical Garden. *Future Internet*. 2022; 14(10):280.
+<https://doi.org/10.3390/fi14100280>
+
+Code is adapted from the work below:
+
+E. Walther, Q. Goestchel, The P.E.T. comfort index: Questioning the
+model, *Building and Environment*, Volume 137, 2018, Pages 1-10, ISSN
+0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
+
+RayShader function for mapping estimated solar radiation values was
+taken partly from the work of
+<a href="https://github.com/tylermorganwall/rayshader"
+target="_blank">tylermorganwal’s rayshader for R</a> and adapted to
+point clouds. For more detail on point clouds see [Pirotti et al.,
+2022](https://doi.org/10.3390/fi14100280)
