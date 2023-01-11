@@ -303,17 +303,18 @@ solarApp <- function() {
         ),
         shiny::column(
           width = 2,
-          title="clothing (clo) from 0 to 1 ",
-          shiny::numericInput("clot", "Cloth", 0.6  )
-        ),
-        shiny::column(
-          width = 4,
-          title="Select your comfort index",
-          shiny::selectInput("confind", "Index", choices = list("Predicted Mean Vote (PMV)"="pmv",
-                                                       "Standard Effective Temperature (SET)"="set",
-                                                       "Physiological Equivalent Temperature (PET)"="pet" ),
-                             selected = "pmv")
+          title="clothing (clo) from 0 to 2 - 0=naked, 2=full heavy clothing",
+          shiny::numericInput("clot", "Cloth", 0.9  )
         )
+        # ,
+        # shiny::column(
+        #   width = 4,
+        #   title="Select your comfort index",
+        #   shiny::selectInput("confind", "Index", choices = list("Predicted Mean Vote (PMV)"="pmv",
+        #                                                "Standard Effective Temperature (SET)"="set",
+        #                                                "Physiological Equivalent Temperature (PET)"="pet" ),
+        #                      selected = "pmv")
+        # )
       ),
       shiny::fluidRow(
         shiny::column(
@@ -457,34 +458,32 @@ solarApp <- function() {
 
         shiny::incProgress(0.36, message = "Calculating MRT")
 
-        ccc<-terra::cells(rast.shade$file10b5ab14ee9382)
+        ccc<-terra::cells(rast.shade)
         values<-  terra::values(rast.shade, na.rm=TRUE)
+
+        dvalues <- round(values[,1], 2)
+        udvalues <- unique(dvalues)
 
         extmessage = ""
         if(input$radiation==0){
          extmessage = "(Warning: 0 radiation value, double check... are you at night?)"
         }
-        mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*values[,1]/(0.97*5.67E-8) )^0.25 -273.15
-        lsCond$tr<<-mrt
-        summary(mrt)
-        shiny::incProgress(0.36, message = paste0(extmessage, "... Calculating ", toupper(input$confind) ) )
+        mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*udvalues/(0.97*5.67E-8) )^0.25 -273.15
 
-        browser()
-        # bb<-suppressWarnings(comf::calcPMV(ta = lsCond$ta,   tr = lsCond$tr,   vel = lsCond$ta,
-        #                   rh = lsCond$rh,
-        #                   clo = lsCond$clo, met = lsCond$met))
+        shiny::incProgress(0.36, message = paste0(extmessage, "... Calculating PET values" ) )
 
 
-        bb<- rPET::PETcorrected(lsCond$ta, lsCond$tr, lsCond$ta)
+        bb<- rPET::PETcorrected(Tair = lsCond$ta,
+                                Tmrt = mrt,
+                                v_air = lsCond$vel ,
+                                rh=lsCond$rh)
 
-        # browser()
-        # if(input$confind=="pmv"){
-        # bb<-comf::calcComfInd(lsCond, request="pmv")
-        shiny::incProgress(0.4, message = paste0(" FINISHED Calculating ", toupper(input$confind) ) )
-        # }
+        pet.values <- bb[ match(dvalues, udvalues) ]
+        shiny::incProgress(0.4, message = paste0(" FINISHED Calculating PET") )
+
         rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
         rs.pet[ccc]<-NA
-        rs.pet[ccc]<- bb
+        rs.pet[ccc]<- pet.values
         if(input$greyscale){
           cols <-  c(
             "#000000",
@@ -521,12 +520,11 @@ solarApp <- function() {
             na.color = "transparent"
           )
 
-        print("here")
         vvv<-c(-3,3 , rs.pet[ccc][,1])
         pal2 <-
           leaflet::colorNumeric(
             cols,
-            vvv,
+            pet.values,
             na.color = "transparent"
           )
         leaflet::leafletProxy('rastPlot2') %>%
@@ -549,7 +547,7 @@ solarApp <- function() {
           leaflet::addLegend(
             pal = pal2,
             title = "Comfort Index",
-            values = vvv,
+            values = pet.values,
             opacity = 1,
             position = "topleft",
             layerId = "myLegend"

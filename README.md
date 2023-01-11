@@ -87,6 +87,9 @@ title(main = "Estimated PET values ", font.main = 4)
 
 ## Mapping confort values
 
+If you have a Digital Terrain Model and a point cloud 3D model in LAS
+format, then you can simulate and map PET over the DTM grid values.
+
 <label>Below an animation of mapped comfort index changing over a hot
 summer day in Villa Bolasco
 <a href="https://www.varcities.eu/" target="_blank">VARCITIES project -
@@ -133,6 +136,12 @@ E. Walther, Q. Goestchel, The P.E.T. comfort index: Questioning the
 model, *Building and Environment*, Volume 137, 2018, Pages 1-10, ISSN
 0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
 
+For a nice overview of the meaning of PET see also:
+
+Höppe, P. The physiological equivalent temperature – a universal index
+for the biometeorological assessment of the thermal environment. Int J
+Biometeorol 43, 71–75 (1999). <https://doi.org/10.1007/s004840050118>
+
 RayShader function for mapping estimated solar radiation values was
 taken partly from the work of
 <a href="https://github.com/tylermorganwall/rayshader"
@@ -144,7 +153,7 @@ point clouds. For more detail on point clouds see [Pirotti et al.,
 
 <div>
 
-        <div style="width: 80px; float:left; height:100px; margin:0px">
+<div style="width: 80px; float:left; height:100px; margin:0px">
 
 <img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" alt="" style="margin-top:5px !important;">
 
@@ -161,4 +170,4 @@ information it contains.
 
 </div>
 
-    </div>
+</div>
