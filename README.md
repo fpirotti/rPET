@@ -167,7 +167,7 @@ point clouds. For more detail on point clouds see [Pirotti et al.,
 </div>
 
 <div
-style="width: *; float:left; height:100px; font-size:smaller; margin:5px; padding-left: 5px;">
+style="width: *; float:left; height:100px; font-size:10px; margin:5px; padding-left: 5px;">
 
 This project has received funding from the European Union’s Horizon 2020
 Research and Innovation programme, under grant agreement No 869505.
