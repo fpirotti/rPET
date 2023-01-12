@@ -109,9 +109,7 @@ simulating a stanading person at the position of each node.
 NB: what changes is the Mean Radiant
 
 <label>Below an animation of mapped comfort index changing over a hot
-summer day in Villa Bolasco
-<a href="https://www.varcities.eu/" target="_blank">VARCITIES project -
-grant agreement n.</a></label> <img src="man/figures/gif_filePMV.gif"/>
+summer day in Villa Bolasco. <img src="man/figures/gif_filePMV.gif"/>
 Solar illumination is simulated at points in space using a 3D model in
 voxel structure and a ray-casting method.
 

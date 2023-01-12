@@ -297,14 +297,14 @@ makeplot2<-function(rs){
   ii<-0
   lapply(nn, function(i){
     ii<<-ii+1
-    terra::plot(i, range=c(25,45), col=viridis::turbo(12),
+    terra::plot(i,   col=viridis::turbo(12),
                 main=paste( dd4$tswtz[[ii]]) )
   })
 }
 
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
 terra::plot(rs.pet.brick[[90]],   col=viridis::turbo(12) )
-save_gif(makeplot2(rs.pet.brick), "data-raw/gif_filePMV.gif",  delay = 0.1, loop = FALSE,  res = 144)
+save_gif(makeplot2(rs.pet.brick), "data-raw/gif_filePMV.gif",  delay = 0.1, loop = TRUE,  res = 144)
 
 e<-environment("package:rPET")
 
