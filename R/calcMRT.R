@@ -1,3 +1,30 @@
+
+#' calcMRT
+#' @description calculates mean radiant temperature from air temperature
+#'              and
+#'
+#' @param air_temperature numeric, Air temperature in °C, DEFAULT=21
+#' @param sunaltitude numeric, sun altitude from the horizong (90-zenith),
+#'      DEFAULT=50 - used to determine the surface projection factor for the
+#'      standing human body with rotational symmetry (i.e. independent of
+#'       azimuth of the sun)
+#' @param solar_radiation_wm2 Solar radiation in W/m2 - at 46° latitude it
+#'       ranges from 0 to 1000 W/m2
+#' @param Fd the fraction of direct solar radiation reaching the body,
+#'       from 0 (body is not illuminated by the sun)
+#'       to 1 (fully explosed to solar radiation)
+#'
+#'
+#' @return mean radiant temperature in °C
+#' @export
+#'
+#' @examples
+#' mrt(air_temperature=21, sunaltitude=50, solar_radiation_wm2=100  )
+mrt <- function(air_temperature, sunaltitude, solar_radiation_wm2, Fd=1) {
+  ( (air_temperature+273.15)^4 + (0.082+ cos(insol::radians(sunaltitude))*0.308)*0.7*solar_radiation_wm2*Fd/(0.97*5.67E-8) )^0.25 -273.15
+}
+
+
 #' calcMRT
 #' @description calculates mean radiant temperature from air temperature
 #'              and

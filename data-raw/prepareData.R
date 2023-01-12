@@ -41,7 +41,7 @@ heightraster<-"data-raw/bolasco_DTM_1m.tif"
 Sys.Date()
 Sys.Date()+1
 
-makeplot <- function(datec="2022-08-03", cutoffZenith=84){
+makeplot <- function(datec="2022-08-03", cutoffZenith=80){
 
   vMRT<-Vectorize(rPET::calcMRT2)
   vGT<-Vectorize(rPET::calcGT)
@@ -103,9 +103,10 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
 
    cs <- makeCluster(14)
    registerDoParallel(cs)
-   ccc<-terra::cells(terra::rast(heightraster))
+   tmpl<-terra::rast(heightraster)
+   ccc<-terra::cells(tmpl)
 
-   result <- foreach( i = 60:63) %dopar% {
+   result <- foreach( i = 1:nrow(dd4)) %dopar% {
 
     data<-as.list(dd4[i,])
     # browser()
@@ -129,18 +130,17 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
     dvalues <- round(values[,1], 2)
     udvalues <- unique(dvalues)
 
-    mrt<- ( (data$air_temperature+273.15)^4 + 0.7*data$solar_radiation_wm2*udvalues/(0.97*5.67E-8) )^0.25 -273.15
 
+    # mrt<- ( (data$air_temperature+273.15)^4 + (0.082+ cos(insol::radians(sunaltitude))*0.308)*0.7*data$solar_radiation_wm2*udvalues/(0.97*5.67E-8) )^0.25 -273.15
+    mrtv <- mrt(data$air_temperature,sunaltitude = sunaltitude,  data$solar_radiation_wm2, Fd = udvalues)
+    bb <- rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrtv,
+                             v_air = 0.1, rh = 50 )
 
-    bb <- rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrt,
-                             v_air = data$wind_speed, rh = data$humidity )
+    bb[ match(dvalues, udvalues) ]
 
-    pet.values <- bb[ match(dvalues, udvalues) ]
-
-    summary(pet.values)
-    rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
-    rs.pet[ccc]<-NA
-    rs.pet[ccc]<- pet.values
+    # rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
+    # rs.pet[ccc]<-NA
+    # rs.pet[ccc]<- pet.values
 
     # par(mfrow=c(1,1))
     # png("SET.png", width=1600, height=1600, res=300)
@@ -153,14 +153,15 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
     #
     # rs.pet[ccc]<-aa$Lraw
     # terra::plot(rs.pet)
-    rs.pet
+
   }
 
 
 }
-
+results.2 <- as.data.frame(result)
 rs.pet.m<-sapply(result, function(bb){
-   rs.pet <- (terra::rast(heightraster) )
+
+   rs.pet <- terra::rast( terra::rast(heightraster)  )
    rs.pet[ccc]<-bb
    rs.pet
   })
@@ -168,6 +169,7 @@ rs.pet.brick<-terra::rast(rs.pet.m)
 rs.pet.brick<-terra::project(rs.pet.brick, "EPSG:4326" )
 terra::time(rs.pet.brick)<-dd4$tswtz
 names(rs.pet.brick)<-dd4$tswtz
+
 terra::writeRaster(rs.pet.brick, "data-raw/outputrShadow.tif", overwrite=T)
 #
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
@@ -290,23 +292,23 @@ makeplot2<-function(rs){
   message("Clamping")
   qq <- quantile(ss, c(0.1,0.9), na.rm=TRUE)
 
-  nn<- terra::clamp(rs, -2, upper=10)
+  nn<- terra::clamp(rs, 22, upper=45, values=TRUE)
   # browser()
   ii<-0
   lapply(nn, function(i){
     ii<<-ii+1
-    terra::plot(i, range=c(-2,10), col=viridis::turbo(12),
+    terra::plot(i, range=c(25,45), col=viridis::turbo(12),
                 main=paste( dd4$tswtz[[ii]]) )
   })
 }
 
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
-terra::plot(rs.pet.brick[[30]], range=c(-2,10), col=viridis::turbo(12),
-            main=paste( dd4$tswtz[[ii]] ))
+terra::plot(rs.pet.brick[[90]],   col=viridis::turbo(12) )
 save_gif(makeplot2(rs.pet.brick), "data-raw/gif_filePMV.gif",  delay = 0.1, loop = FALSE,  res = 144)
 
 e<-environment("package:rPET")
 
+summary(results.2)
 
 e<-environment(rPET::ray_shade)
 e$globals$pointcloud.cellsHeightMap.m

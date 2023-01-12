@@ -361,7 +361,7 @@ solarApp <- function() {
       browser()
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
-      sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 0))[1,]
+      sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 1))[1,]
 
       shiny::updateNumericInput(inputId = "forceSunElev",value = round(sunposition[[2]]) )
       shiny::updateNumericInput(inputId = "forceSunAngle",value = round(sunposition[[1]]) )
@@ -392,7 +392,7 @@ solarApp <- function() {
       input$long
       },{
 
-        dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
+        dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 1))
 
         sunposition <<- dd[1,]
         lsCond <<- getMeteoStation(input$bins )
@@ -469,8 +469,8 @@ solarApp <- function() {
          extmessage = "(Warning: 0 radiation value, double check... are you at night?)"
         }
 
-        mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*udvalues/(0.97*5.67E-8) )^0.25 -273.15
-
+        # mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*udvalues/(0.97*5.67E-8) )^0.25 -273.15
+        mrt<- mrt(shiny::isolate(lsCond$ta),  sunaltitude = 90 - sp[[2]], shiny::isolate(input$radiation), Fd = udvalues)
         shiny::incProgress(0.36, message = paste0(extmessage, "... Calculating PET values" ) )
 
         bb<- rPET::PETcorrected(Tair = lsCond$ta,
@@ -555,15 +555,6 @@ solarApp <- function() {
 
       })
 
-      # myplot <- elmat %>%
-      #   rayshader::height_shade() %>%
-      #   rayshader::add_shadow(rs, 0.5) %>%
-      #   rayshader::plot_map()
-      #
-      # myplot <- rs %>%
-      #   rayshader::plot_map()
-      # myplot <- rayshader::plot_map(rs)
-
     })
 
     output$distPlot <- shiny::renderPlot({
@@ -574,38 +565,72 @@ solarApp <- function() {
             length = 2,
             by = '1 day')[2]
 
-      days = insol::JD(seq(as.POSIXct(input$bins), as.POSIXct(dayafter), by =
-                             'min'))
-      # message(as.POSIXct(input$bins), as.POSIXct(dayafter))
-      # scatterplot3d(sunvector(juneday,45,9,0),
-      #               ylim=c(-1,1),zlim=c(0,1),pch=8,color='orange')
+      days = insol::JD(seq(as.POSIXct(as.Date(input$bins)),
+                           as.POSIXct(as.Date(dayafter)), by =  'min'))
+      sh<-seq(as.POSIXct(as.Date(input$bins)), as.POSIXct(as.Date(dayafter)), by =  'hour')
+      sh.lab <- format(sh, "%H:00")
+      hours <- insol::JD(sh)
 
       sp <- sunposition
-         #insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 0))
-      sps <-
-        insol::sunpos(insol::sunvector((days), input$lat, input$long, 0))
+      sps <-  insol::sunpos(insol::sunvector(days, input$lat, input$long, 1))
+      sps.h <-  insol::sunpos(insol::sunvector(hours, input$lat, input$long, 1))
+      sps <- sps[ sps[, "zenith"]>0 & sps[, "zenith"] < 90, ]
+
+      sps.h.w <- sps.h[, "zenith"]>0 & sps.h[, "zenith"] < 90
+      sps.h <- sps.h[ sps.h.w, ]
+
+      sh.lab <- sh.lab[ sps.h.w ]
 
       plotrix::polar.plot(
-        90 - sps[, 2],
-        sps[, 1],
+         c(0, sps[, 2]),
+         c(0, sps[, 1]),
         start = 90,
+        radial.lim = seq(0, 90, 30),
+        radial.labels = c("0°", "30°", "60°", "90°"),
         clockwise = TRUE,
-        rp.type = 'l',
-        # point.symbols=20,point.col=1,cex=1,
-        radial.lim = c(0, 90),
-        main = 'Apparent solar path at date and position'
+        label.pos=  insol::radians(seq(0, 360, 45)) ,
+        labels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"),
+        rp.type = 's',
+        cex=0.1
       )
 
       plotrix::polar.plot(
-        90 - sp[[2]],
-        sp[[1]],
+        sps.h[,2],
+        sps.h[,1],
         start = 90,
+        radial.lim = c(0, 30, 60, 90),
         clockwise = TRUE,
         rp.type = 's',
         point.symbols = 20,
+        point.col = 4,
+        cex = 2,
+        add = T
+      )
+
+      plotrix::polar.plot(
+        sps.h[,2]+10,
+        sps.h[,1] ,
+        start = 90,
+        radial.lim = c(0, 30, 60, 90),
+        clockwise = TRUE,
+        rp.type = 't',
+        point.symbols = sh.lab,
         point.col = 2,
         cex = 3,
-        radial.lim = c(0, 90),
+        offset=3,
+        boxed.radial=FALSE,
+        add = T
+      )
+
+      plotrix::polar.plot(
+        sp[[2]],
+         sp[[1]] ,
+        start = 90,
+        radial.lim = c(0, 30, 60, 90),
+        clockwise = TRUE,
+        rp.type = 's',
+        point.col = 2,
+        cex = 4,
         add = T
       )
       # polar.plot(90-sps[,2],sps[,1],start=90,clockwise=TRUE,rp.type='l',

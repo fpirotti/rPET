@@ -21,8 +21,23 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
-(PET) from an R function, allowing to apply the function to vectors and
-matrices. For more info see [references section](References):
+(PET) using as input measurements from sensors in the field and
+information on person position and characteristics. The following input
+can be used: - air temperature, - wind speed - sun radiation - relative
+humidity - age - clothing - metabolic rate (standing, walking, running
+etc..) - weight - height
+
+An important component, mean radiant temperature (Tmrt), is estimated in
+this version in a simplified form, i.e. only considering direct and
+diffuse sunlight, without other surfaces that could be emitting
+long-wave radiation (i.e. heat).
+
+Environmental 3D information can be used as input in the form of a
+terrain model (a raster grid) and a 3D point cloud in the form of XYZ
+table. These information is used to infer the amount of direct/diffuse
+solar radiation reaching a person standing at each node of the raster
+grid, therefore providing Tmrt and the final PET value for that node.
+For more info see \[1-5\]:
 
 ## Usage
 
@@ -88,7 +103,10 @@ title(main = "Estimated PET values ", font.main = 4)
 ## Mapping confort values
 
 If you have a Digital Terrain Model and a point cloud 3D model in LAS
-format, then you can simulate and map PET over the DTM grid values.
+format, then you can simulate and map PET over the DTM grid nodes,
+simulating a stanading person at the position of each node.
+
+NB: what changes is the Mean Radiant
 
 <label>Below an animation of mapped comfort index changing over a hot
 summer day in Villa Bolasco
@@ -124,36 +142,38 @@ devtools::install_github("fpirotti/rPET")
 
 ## References
 
-Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. *Information
-Technologies for Real-Time Mapping of Human Well-Being Indicators in an
-Urban Historical Garden.* Future Internet. 2022; 14(10):280.
-<https://doi.org/10.3390/fi14100280>
+1.  Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. *Information
+    Technologies for Real-Time Mapping of Human Well-Being Indicators in
+    an Urban Historical Garden.* Future Internet. 2022; 14(10):280.
+    <https://doi.org/10.3390/fi14100280>
 
-Code is adapted from the work below:
+2.  E. Walther, Q. Goestchel, *The P.E.T. comfort index: Questioning the
+    model,* Building and Environment, Volume 137, 2018, Pages 1-10, ISSN
+    0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
 
-E. Walther, Q. Goestchel, *The P.E.T. comfort index: Questioning the
-model,* Building and Environment, Volume 137, 2018, Pages 1-10, ISSN
-0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
+3.  Höppe, P. *The physiological equivalent temperature – a universal
+    index for the biometeorological assessment of the thermal
+    environment*. Int J Biometeorol 43, 71–75 (1999).
+    <https://doi.org/10.1007/s004840050118>
 
-For a nice overview of the meaning of PET see also:
+4.  Rakha, T., Zhandand Christoph Reinhart, P., 2017. *A Framework for
+    Outdoor Mean Radiant Temperature Simulation: Towards Spatially
+    Resolved Thermal Comfort Mapping in Urban Spaces.* Presented at the
+    2017 Building Simulation Conference.
+    <https://doi.org/10.26868/25222708.2017.677>
 
-Höppe, P. *The physiological equivalent temperature – a universal index
-for the biometeorological assessment of the thermal environment*. Int J
-Biometeorol 43, 71–75 (1999). <https://doi.org/10.1007/s004840050118>
+5.  Csilla V. Gál, Noémi Kántor, Modeling mean radiant temperature in
+    outdoor spaces, A comparative numerical  
+    simulation and validation study, Urban Climate, Volume 32, 2020,
+    100571, <https://doi.org/10.1016/j.uclim.2019.100571>.
 
-Mean Radiant Temperature calculations:
-
-Rakha, T., Zhandand Christoph Reinhart, P., 2017. *A Framework for
-Outdoor Mean Radiant Temperature Simulation: Towards Spatially Resolved
-Thermal Comfort Mapping in Urban Spaces.* Presented at the 2017 Building
-Simulation Conference. <https://doi.org/10.26868/25222708.2017.677>
-
-RayShader function for mapping estimated solar radiation values was
-taken partly from the work of
-<a href="https://github.com/tylermorganwall/rayshader"
-target="_blank">tylermorganwal’s rayshader for R</a> and adapted to
-point clouds. For more detail on point clouds see [Pirotti et al.,
-2022](https://doi.org/10.3390/fi14100280)
+6.  Morgan-Wall, T., 2023. rayshader: Create Maps and Visualize Data in
+    2D and 3D. RayShader function for mapping estimated solar radiation
+    values was taken partly from the work of
+    <a href="https://github.com/tylermorganwall/rayshader"
+    target="_blank">tylermorganwal’s rayshader for R</a> and adapted to
+    point clouds. For more detail on point clouds see [Pirotti et al.,
+    2022](https://doi.org/10.3390/fi14100280)
 
 ## Acknowledgements
 
