@@ -93,10 +93,9 @@ format, then you can simulate and map PET over the DTM grid values.
 <label>Below an animation of mapped comfort index changing over a hot
 summer day in Villa Bolasco
 <a href="https://www.varcities.eu/" target="_blank">VARCITIES project -
-grant agreement n. </a></label>
-<img src="man/figures/gif_filePMV.gif" /> Solar illumination is
-simulated at points in space using a 3D model in voxel structure and a
-ray-casting method.
+grant agreement n.</a></label> <img src="man/figures/gif_filePMV.gif"/>
+Solar illumination is simulated at points in space using a 3D model in
+voxel structure and a ray-casting method.
 
 <video src="https://user-images.githubusercontent.com/1391292/181439231-4d9c09ff-c552-499a-8d95-6ea988079e55.mp4" data-canonical-src="https://user-images.githubusercontent.com/1391292/181439231-4d9c09ff-c552-499a-8d95-6ea988079e55.mp4?width=354&amp;height=488" controls="controls" muted="muted" autoplay style="max-height:640px;">
 </video>
@@ -162,7 +161,7 @@ point clouds. For more detail on point clouds see [Pirotti et al.,
 
 <div style="width: 80px; float:left; height:100px; margin:0px">
 
-<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" alt="" style="margin-top:5px !important;">
+<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" style="margin-top:5px !important;"/>
 
 </div>
 
