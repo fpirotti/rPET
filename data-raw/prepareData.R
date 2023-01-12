@@ -45,7 +45,6 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
 
   vMRT<-Vectorize(rPET::calcMRT2)
   vGT<-Vectorize(rPET::calcGT)
-  vPET<-Vectorize(rPET::PETcorrected)
   if(is.na(datec)){
     ss<-seq(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1), by="min")
   } else {
@@ -106,7 +105,7 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
    registerDoParallel(cs)
    ccc<-terra::cells(terra::rast(heightraster))
 
-   result <- foreach( i = 1:nrow(dd4)) %dopar% {
+   result <- foreach( i = 60:63) %dopar% {
 
     data<-as.list(dd4[i,])
     # browser()
@@ -120,36 +119,29 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
                           lambert = TRUE)
 
     # rs %>% rayshader::plot_map()
-    rs.raster <- rPET::matrix2raster(rs)
-    return(rs.raster[ccc][,1])
+
+    rast.shade <- rPET::matrix2raster(rs)
+    # return(rs.raster[ccc][,1])
     # terra::plot(rs.raster)
-    ccc<-terra::cells(rs.raster)
-    values <- rs.raster[ccc]
-    message("Calculating MRT")
-    # mrt<-vMRT(Ta=data$air_temperature, Td=data$dew_point_temperature,
-    #      WV = data$wind_speed+100, S = data$solar_radiation_wm2,
-    #      Fdiff =values$lyr.1, Fd = 1-values$lyr.1, Z = data$zenith, P = data$pressure_mb  )
+    ccc<-terra::cells(rast.shade)
+    values<-  terra::values(rast.shade, na.rm=TRUE)
 
-    mrt<- ( (data$air_temperature+273.15)^4 + 0.7*data$solar_radiation_wm2*values$lyr.1/(0.97*5.67E-8) )^0.25 -273.15
-    idx1<-(round(mrt, 1))
-    idx<-unique(idx1 )
-    idxf<-data.table::chmatch(as.character(idx1) , as.character(idx) )
-    # message("Calculating PET ... will take a while")
+    dvalues <- round(values[,1], 2)
+    udvalues <- unique(dvalues)
 
-    # rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrt, v_air = data$wind_speed, pvap = data$humidity )
-
-    # bb<- comf::calcPMV(ta = data$air_temperature, tr = mrt,
-    #                       vel = data$wind_speed, rh = data$humidity, clo = 0.6, met = 1.4 )
-
-    bb<- comf::calc2Node(ta = data$air_temperature, tr = idx,
-                       vel = data$wind_speed, rh = data$humidity,
-                       clo = 0.6, met = 1.4 )
+    mrt<- ( (data$air_temperature+273.15)^4 + 0.7*data$solar_radiation_wm2*udvalues/(0.97*5.67E-8) )^0.25 -273.15
 
 
-    # rs.pet <- terra::deepcopy(terra::rast(heightraster) )
-     bb$pmvg
-    # rs.pet[ccc]<-bb
-    # rs.pet<-terra::project(rs.pet, "EPSG:4326" )
+    bb <- rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrt,
+                             v_air = data$wind_speed, rh = data$humidity )
+
+    pet.values <- bb[ match(dvalues, udvalues) ]
+
+    summary(pet.values)
+    rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
+    rs.pet[ccc]<-NA
+    rs.pet[ccc]<- pet.values
+
     # par(mfrow=c(1,1))
     # png("SET.png", width=1600, height=1600, res=300)
     # terra::plot(rs.pet, col=viridis::turbo(12), range=c(-3,3))
@@ -161,7 +153,7 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=84){
     #
     # rs.pet[ccc]<-aa$Lraw
     # terra::plot(rs.pet)
-    # rs.pet
+    rs.pet
   }
 
 

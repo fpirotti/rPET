@@ -134,7 +134,7 @@ solarApp <- function() {
     leaflet::addLayersControl(
       position = ("topright"),
       baseGroups = c("Blank", "OpenStreetMap", "BING"),
-      overlayGroups = c("Shadow Map", "Comfort Index Map"),
+      overlayGroups = c("Shadow Map", "PET Map"),
       leaflet::layersControlOptions(autoZIndex = F, collapsed = F)
     ) %>%
     leaflet::showGroup("BING")   %>%
@@ -358,7 +358,7 @@ solarApp <- function() {
       lsCond <<- getMeteoStation()
       lsCond$met<<-input$met
       lsCond$clo<<-input$clo
-
+      browser()
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
       sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 0))[1,]
@@ -368,7 +368,7 @@ solarApp <- function() {
       shiny::updateNumericInput(inputId = "temp", value = lsCond$ta )
       shiny::updateNumericInput(inputId = "hum", value = lsCond$rh )
       shiny::updateNumericInput(inputId = "wind", value = lsCond$vel )
-      browser()
+
       # shiny::updateNumericInput(inputId = "radiation", value = lsCond$vel )
       shiny::updateNumericInput(inputId = "radiation", value = lsCond$solar_radiation_wm2 )
     }
@@ -468,10 +468,10 @@ solarApp <- function() {
         if(input$radiation==0){
          extmessage = "(Warning: 0 radiation value, double check... are you at night?)"
         }
+
         mrt<- ( (lsCond$ta+273.15)^4 + 0.7*input$radiation*udvalues/(0.97*5.67E-8) )^0.25 -273.15
 
         shiny::incProgress(0.36, message = paste0(extmessage, "... Calculating PET values" ) )
-
 
         bb<- rPET::PETcorrected(Tair = lsCond$ta,
                                 Tmrt = mrt,
@@ -520,34 +520,34 @@ solarApp <- function() {
             na.color = "transparent"
           )
 
-        vvv<-c(-3,3 , rs.pet[ccc][,1])
+
         pal2 <-
           leaflet::colorNumeric(
             cols,
-            pet.values,
+            bb,
             na.color = "transparent"
           )
         leaflet::leafletProxy('rastPlot2') %>%
           leaflet::clearGroup(group = 'Shadow Map') %>%
-          leaflet::clearGroup(group = 'Comfort Index Map') %>%
+          leaflet::clearGroup(group = 'PET Map') %>%
           leaflet::removeControl(layerId = 'myLegend') %>%
 
           leaflet::addRasterImage(
-            raster::raster(rast.shade),
+             rast.shade ,
             colors = pal,
             group = "Shadow Map",
             opacity = 0.8
           ) %>%
           leaflet::addRasterImage(
-            raster::raster(rs.pet),
+             rs.pet ,
             colors = pal2,
-            group = "Comfort Index Map",
+            group = "PET Map",
             opacity = 0.8
           ) %>%
           leaflet::addLegend(
             pal = pal2,
-            title = "Comfort Index",
-            values = pet.values,
+            title = "PET (°C)",
+            values = bb,
             opacity = 1,
             position = "topleft",
             layerId = "myLegend"

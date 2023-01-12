@@ -125,22 +125,29 @@ devtools::install_github("fpirotti/rPET")
 
 ## References
 
-Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. Information
+Pirotti F, Piragnolo M, D’Agostini M, Cavalli R. *Information
 Technologies for Real-Time Mapping of Human Well-Being Indicators in an
-Urban Historical Garden. *Future Internet*. 2022; 14(10):280.
+Urban Historical Garden.* Future Internet. 2022; 14(10):280.
 <https://doi.org/10.3390/fi14100280>
 
 Code is adapted from the work below:
 
-E. Walther, Q. Goestchel, The P.E.T. comfort index: Questioning the
-model, *Building and Environment*, Volume 137, 2018, Pages 1-10, ISSN
+E. Walther, Q. Goestchel, *The P.E.T. comfort index: Questioning the
+model,* Building and Environment, Volume 137, 2018, Pages 1-10, ISSN
 0360-1323, <https://doi.org/10.1016/j.buildenv.2018.03.054>.
 
 For a nice overview of the meaning of PET see also:
 
-Höppe, P. The physiological equivalent temperature – a universal index
-for the biometeorological assessment of the thermal environment. Int J
+Höppe, P. *The physiological equivalent temperature – a universal index
+for the biometeorological assessment of the thermal environment*. Int J
 Biometeorol 43, 71–75 (1999). <https://doi.org/10.1007/s004840050118>
+
+Mean Radiant Temperature calculations:
+
+Rakha, T., Zhandand Christoph Reinhart, P., 2017. *A Framework for
+Outdoor Mean Radiant Temperature Simulation: Towards Spatially Resolved
+Thermal Comfort Mapping in Urban Spaces.* Presented at the 2017 Building
+Simulation Conference. <https://doi.org/10.26868/25222708.2017.677>
 
 RayShader function for mapping estimated solar radiation values was
 taken partly from the work of

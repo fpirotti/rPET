@@ -19,7 +19,8 @@ method  is from globe temperature but is very sensible to wind speed (wind=0 the
 mean radiant temperature in °C
 }
 \description{
-calculates mean radiant temperature
+calculates mean radiant temperature from air temperature
+and
 }
 \examples{
 Ta=30; WV=2.681666667;

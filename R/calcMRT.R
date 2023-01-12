@@ -1,5 +1,6 @@
 #' calcMRT
-#' @description calculates mean radiant temperature
+#' @description calculates mean radiant temperature from air temperature
+#'              and
 #'
 #' @param Ta numeric, Air temperature in °C, DEFAULT=21
 #' @param Tg numeric, globe temperature in °C, DEFAULT=21
