@@ -303,7 +303,6 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
           eswdif <- esweat - emax # difference between sweating and max capacity
 
           esw <- emax
-          browser()
           esw[eswdif > 0.0] <- esweat[eswdif > 0.0]
           esw[esw > 0.0] <- 0.0
 

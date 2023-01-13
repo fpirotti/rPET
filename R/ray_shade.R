@@ -53,6 +53,7 @@ globals$maxheight <- NA
 #'@param onlyprepare Default  `FALSE` if you only want to cache the data structure. Helpful if you want to have almost real time rendering and do not want the first calculation to take too much time (see rPET::solarApp() )
 #'@param makeVoxelGrid  Default  `FALSE`  will create a voxel space with the same resolution of cubes as the 2d resolution of the `heightrasterFile` DTM grid. The result will be saved in the global environment as `globals$voxelSpace`
 #'@param force Default  `FALSE`  force data preparation. If false and if data has already been prepared, it will use the prepared data.
+#'@param verbose Default  `FALSE` more messages
 #'@param ... Additional arguments to pass to the `makeCluster` function when `multicore=TRUE`.
 #'@import foreach doParallel parallel progress terra
 #'@return Matrix of light intensities at each point.
@@ -67,7 +68,10 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
                     cache_mask = NULL, shadow_cache=NULL, progbar=interactive(),
                     anglebreaks = NULL,
                     useClass=TRUE,
-                    onlyprepare = FALSE, makeVoxelGrid=FALSE, force=FALSE, ...) {
+                    onlyprepare = FALSE,
+                    makeVoxelGrid=FALSE,
+                    force=FALSE,
+                    verbose=FALSE, ...) {
 
 
 
@@ -101,7 +105,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     return(NULL)
   }
 
-    heightmap <- raster_to_matrix(heightraster)
+    heightmap <- raster_to_matrix(heightraster, verbose = verbose)
     originalheightmap = heightmap
     heightmap =  add_padding(heightmap)
 
@@ -120,9 +124,10 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     if(force || !identical(PointCloud3D,globals$PointCloud3D)){
       globals$PointCloud3D <- PointCloud3D
     }
-
-    if(force) message("Forcing caching your data...")
-    else message("Caching your data")
+    if(verbose) {
+      if(force) message("Forcing caching your data...")
+      else message("Caching your data")
+    }
 
 
     ## list of index and DSM Z value -----
@@ -138,12 +143,12 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     ## nZ value -----
     #pointcloud.cellsHeightMap$Z <-  pointcloud.cellsHeightMap$Z - heightraster[pointcloud.cellsHeightMap$id]
 
-    message("1 / 4 Height map calculated...")
+    if(verbose) message("1 / 4 Height map calculated...")
     #data.table::setkey(pointcloud.cellsHeightMap, nZ)
     ## remove points below terrain + height surface ----- no shade will be casted from points below
     lw <- which(pointcloud.cellsHeightMap$nZ< 0)
     if(length(lw)>0){
-      message(length(lw), " points below the terrain height map! they will be removed")
+      if(verbose)  message(length(lw), " points below the terrain height map! they will be removed")
       pointcloud.cellsHeightMap<-pointcloud.cellsHeightMap[-lw,]
     }
 
@@ -157,7 +162,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     ## order by ID and Z so that are ordered.... do we need this??? if random it is ok for checking raycasting -----
     # ord<-order(pointcloud.cellsHeightMap[,"id"], pointcloud.cellsHeightMap[,"Z"])
 
-    message("2 / 4  Ordering data, might take a bit......")
+    if(verbose)  message("2 / 4  Ordering data, might take a bit......")
     #ord<-order(pointcloud.cellsHeightMap$id, pointcloud.cellsHeightMap$Z)
     data.table::setorderv(pointcloud.cellsHeightMap, c("id", "Z")  )
     globals$pointcloud.cellsHeightMap.m <-  pointcloud.cellsHeightMap #pointcloud.cellsHeightMap[ order(id, Z)]
@@ -206,28 +211,27 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     # plot(addressGrid)
     addressGrid[ globals$pointcloud.cellsHeightMap.m$id[ww] ] <- ww
 
-    message("3 / 4  Address grid created...")
+    if(verbose) message("3 / 4  Address grid created...")
 
     lengthLUT <- tabulate(globals$pointcloud.cellsHeightMap.m$id)
-    message("3a / 4  Address grid created...")
+    if(verbose) message("3a / 4  Address grid created...")
     llut <- which(lengthLUT!=0)
-    message("3b / 4  Address grid created...")
+    if(verbose) message("3b / 4  Address grid created...")
 
-    message("3d / 4  Address grid created...")
+    if(verbose) message("3d / 4  Address grid created...")
     lengthGrid[ llut ] <- lengthLUT[llut]
 
     # png("p1.png", res = 250, width = 1200, height = 1300)
     #   plot( terra::project(addressGrid, "EPSG:4326"),  col= viridis::turbo(20) )
     # dev.off()
     #
-    message("4 / 4  Length grid created...")
+    if(verbose)  message("4 / 4  Length grid created...")
 
     globals$lengthraster <- lengthGrid
     globals$addressraster <- addressGrid
 
-    globals$lengthmap <- raster_to_matrix(lengthGrid)
-    globals$addressmap <- raster_to_matrix(addressGrid)
-
+    globals$lengthmap <- raster_to_matrix(lengthGrid, verbose = verbose)
+    globals$addressmap <- raster_to_matrix(addressGrid, verbose = verbose)
 
     globals$addressmap =  add_padding(globals$addressmap)
     globals$lengthmap =  add_padding(globals$lengthmap)
@@ -236,14 +240,14 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
 
     globals$maxsearch = (globals$maxheight - min(globals$pointcloud.cellsHeightMap.m$Z,na.rm=TRUE))/(zscale*sinpi(min(anglebreaks[anglebreaks > 0])/180))
 
-    message("Caching finised...")
+    if(verbose) message("Caching finised...")
 
   } else {
-    message("Using cached data...")
+    if(verbose)  message("Using cached data...")
   }
 
   if(onlyprepare){
-    message("Data has been prepared...")
+    if(verbose)  message("Data has been prepared...")
     return(TRUE)
   }
 
@@ -268,7 +272,7 @@ ray_shade = function(heightrasterFile, PointCloud3D, sunaltitude=45, sunangle=31
     cache_mask = padding
   }
   if(!multicore) {
-    message("running shadowmatrix")
+    if(verbose)  message("running shadowmatrix")
 
     shadowmatrix <- tryCatch({
       rayshade_cpp(sunangle = sunangle_rad,

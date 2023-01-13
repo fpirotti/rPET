@@ -358,7 +358,6 @@ solarApp <- function() {
       lsCond <<- getMeteoStation()
       lsCond$met<<-input$met
       lsCond$clo<<-input$clo
-      browser()
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
       sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 1))[1,]

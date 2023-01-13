@@ -181,7 +181,7 @@ NumericMatrix rayshade_cpp(double sunangle,
   bool anyfound;
  // double maxheight = max(heightmap);
   char str[100];
-  Rcout << " STARTING HERE nrows=" << pointcloud.nrow() << " cols=" << pointcloud.ncol() << std::endl;
+  // Rcout << " STARTING HERE nrows=" << pointcloud.nrow() << " cols=" << pointcloud.ncol() << std::endl;
   //sprintf(str, "Raytracing with MaxDist=%.4f MaxHeight=%.4f  [:bar] ETA: :eta", maxdist, maxheight);
   //Rprintf(str);
   //RProgress::RProgress pb( str );

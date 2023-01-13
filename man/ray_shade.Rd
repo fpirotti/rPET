@@ -22,6 +22,7 @@ ray_shade(
   onlyprepare = FALSE,
   makeVoxelGrid = FALSE,
   force = FALSE,
+  verbose = FALSE,
   ...
 )
 }
@@ -72,6 +73,8 @@ if available in the file (see LAS SPECIFICATION VERSION 1.4 – R6 15 August 201
 \item{makeVoxelGrid}{Default  \code{FALSE}  will create a voxel space with the same resolution of cubes as the 2d resolution of the \code{heightrasterFile} DTM grid. The result will be saved in the global environment as \code{globals$voxelSpace}}
 
 \item{force}{Default  \code{FALSE}  force data preparation. If false and if data has already been prepared, it will use the prepared data.}
+
+\item{verbose}{Default  \code{FALSE} more messages}
 
 \item{...}{Additional arguments to pass to the \code{makeCluster} function when \code{multicore=TRUE}.}
 }
