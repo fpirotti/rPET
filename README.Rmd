@@ -11,19 +11,7 @@ output:
         html_document: 
           self_contained: yes
 ---
-
-```{html}
-<style>
-euimg { 
-  float:left; 
-  box-shadow: 0px 0px 50px #888888;  
-}
-
-euimgdiv {
-  font-size: smaller;
-}
-</style>
-```
+ 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <!-- badges: start -->
@@ -35,6 +23,16 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![R-CMD-check](https://github.com/fpirotti/rPET/workflows/R-CMD-check/badge.svg)](https://github.com/fpirotti/rPET/actions)
 
 <!-- badges: end -->
+<style>
+euimg { 
+  float:left; 
+  box-shadow: 0px 0px 50px #888888;  
+}
+
+euimgdiv {
+  font-size: smaller;
+}
+</style>
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) using as input measurements from sensors in the field and

@@ -10,19 +10,6 @@ rPET - Physiological Equivalent Temperature
 - <a href="#acknowledgements"
   id="toc-acknowledgements">Acknowledgements</a>
 
-``` html
-<style>
-euimg { 
-  float:left; 
-  box-shadow: 0px 0px 50px #888888;  
-}
-
-euimgdiv {
-  font-size: smaller;
-}
-</style>
-```
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
@@ -33,6 +20,16 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![R-CMD-check](https://github.com/fpirotti/rPET/workflows/R-CMD-check/badge.svg)](https://github.com/fpirotti/rPET/actions)
 
 <!-- badges: end -->
+<style>
+euimg { 
+  float:left; 
+  box-shadow: 0px 0px 50px #888888;  
+}
+
+euimgdiv {
+  font-size: smaller;
+}
+</style>
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) using as input measurements from sensors in the field and
@@ -114,7 +111,7 @@ contour(x, y, interpolated, levels = seq(0, 40, by = 2),
 title(main = "Estimated PET values ", font.main = 4)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ## Mapping confort values
 
