@@ -46,23 +46,24 @@ Three air temperatures and wind speeds:
 
 ``` r
 library(rPET)
+options(digits=3)
 
 PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
 ```
 
-    ## [1] 21.49536
+    ## [1] 21.5
 
 ``` r
 PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
 ```
 
-    ## [1] 22.704
+    ## [1] 22.7
 
 ``` r
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
 ```
 
-    ## [1] 25.10304
+    ## [1] 25.1
 
 a faster way in vectorized format, like running each row from table
 below:
@@ -77,7 +78,7 @@ below:
 PETcorrected( Tair = c(20,25,30), Tmrt=30, v_air=c(0, 1, 5), rh=20 )
 ```
 
-    ## [1] 26.82496 24.15802 26.37248
+    ## [1] 26.8 24.2 26.4
 
 All possible combinations of three values from three factors for a total
 of 27 combinations.
@@ -89,12 +90,12 @@ values <- expand.grid(
             rh = c(10, 50, 70)
           )
 
-PETs <- PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
+PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
               v_air=values$wind_speed, rh=values$rh )
-message(PETs)
 ```
 
-    ## 26.678428.489945630.252620820.4182579224.0566428.233616.7635221.34675226.249627.1897629.09631.0567219220.7174424.61356828.96115216.932454421.5779226.93785627.40620829.36019231.457638420.86668824.80249629.32569617.017621.69491227.37792
+    ##  [1] 26.7 28.5 30.3 20.4 24.1 28.2 16.8 21.3 26.2 27.2 29.1 31.1 20.7 24.6 29.0
+    ## [16] 16.9 21.6 26.9 27.4 29.4 31.5 20.9 24.8 29.3 17.0 21.7 27.4
 
 Plotting combinations of 10 values from two factors, Air Temperature and
 Wind Speed:

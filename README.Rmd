@@ -49,6 +49,7 @@ Three air temperatures and wind speeds:
 
 ```{r }
 library(rPET)
+options(digits=3)
 
 PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
 
@@ -82,9 +83,9 @@ values <- expand.grid(
             rh = c(10, 50, 70)
           )
 
-PETs <- PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
+PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
               v_air=values$wind_speed, rh=values$rh )
-message(PETs)
+
 ```
 
 Plotting combinations of 10 values from two factors, Air Temperature and
