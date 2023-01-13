@@ -252,7 +252,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
           c[,9] <- c[,7] * c[,7] - 4.0 * c[,5] * c[,8]
           ww<-which(tsk == tsk_set)
           # if (tsk == tsk_set) {
-          tsk[ww] <- tsk_set[ww] + 0.01
+          tsk[ww] <- tsk_set + 0.01
           # }
           # Calculation of Tcore[]: ----
           # case 7 : Set blood flow only
@@ -303,6 +303,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
           eswdif <- esweat - emax # difference between sweating and max capacity
 
           esw <- emax
+          browser()
           esw[eswdif > 0.0] <- esweat[eswdif > 0.0]
           esw[esw > 0.0] <- 0.0
 
@@ -546,7 +547,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
 
 
   # be<-  bench::bench_time( s<-  systemp(21, runif(20)*6 + 31) )
-  s<-  systemp(Tair, Tmrt, rh, v_air, M_activity, icl)
+  s <-  systemp(Tair, Tmrt, rh, v_air, M_activity, icl)
   pet.res <-  pet(s$tc, s$tsk, s$tcl, Tair, s$esw)
 
   return(pet.res)
