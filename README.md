@@ -9,6 +9,16 @@ rPET - Physiological Equivalent Temperature
 - <a href="#acknowledgements"
   id="toc-acknowledgements">Acknowledgements</a>
 
+<style>
+euimg { 
+  float:left; 
+  box-shadow: 0px 0px 50px #888888;  
+}
+
+euimgdiv {
+  font-size: smaller;
+}
+</style>
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
@@ -175,23 +185,14 @@ devtools::install_github("fpirotti/rPET")
 
 ## Acknowledgements
 
-<div>
+<img id=euimg src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" style="margin-top:5px !important;"/>
 
-<div style="width: 80px; float:left; height:100px; margin:0px">
-
-<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" style="margin-top:5px !important;"/>
-
-</div>
-
-<div
-style="width: *; float:left; height:100px; font-size:10px; margin:5px; padding-left: 5px;">
+<div id="euimgdiv">
 
 This project has received funding from the European Union’s Horizon 2020
 Research and Innovation programme, under grant agreement No 869505.
 <br>This page reflect only the authors’ view and the European
 Commission/EASME is not responsible for any use that may be made of the
 information it contains.
-
-</div>
 
 </div>
