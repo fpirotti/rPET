@@ -45,31 +45,56 @@ For more info see \[1-5\]:
 Three air temperatures and wind speeds:
 
 ``` r
-PETcorrected( Tair = 20, Tmrt=21, v=0, rh=20 )
+library(rPET)
 
-PETcorrected( Tair = 25, Tmrt=21, v=0.1, rh=20 )
+PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
+```
 
+    ## [1] 21.49536
+
+``` r
+PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
+```
+
+    ## [1] 22.704
+
+``` r
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
 ```
 
-a faster way in vectorized format:
+    ## [1] 25.10304
+
+a faster way in vectorized format, like running each row from table
+below:
+
+| Tair | Tmrt | v_air | rh  |
+|------|------|-------|-----|
+| 20   | 30   | 0     | 20  |
+| 25   | 30   | 1     | 20  |
+| 30   | 30   | 5     | 20  |
 
 ``` r
-PETcorrected( Tair = c(20,25,30), Tmrt=21, v_air=c(0, 0.1, 0.5), rh=20 )
+PETcorrected( Tair = c(20,25,30), Tmrt=30, v_air=c(0, 1, 5), rh=20 )
 ```
 
-All possible combinations of three values from four factors:
+    ## [1] 26.82496 24.15802 26.37248
+
+All possible combinations of three values from three factors for a total
+of 27 combinations.
 
 ``` r
 values <- expand.grid(
-            Tair = c(20,25,30), Tmrt = c(20,25,30),
-            wind_speed = c(0, 0.5, 1),
+            Tair = c(20,25,30), Tmrt = 30,
+            wind_speed = c(0, 1, 5),
             rh = c(10, 50, 70)
           )
 
 PETs <- PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
               v_air=values$wind_speed, rh=values$rh )
+message(PETs)
 ```
+
+    ## 26.678428.489945630.252620820.4182579224.0566428.233616.7635221.34675226.249627.1897629.09631.0567219220.7174424.61356828.96115216.932454421.5779226.93785627.40620829.36019231.457638420.86668824.80249629.32569617.017621.69491227.37792
 
 Plotting combinations of 10 values from two factors, Air Temperature and
 Wind Speed:
@@ -266,7 +291,7 @@ from surfaces.
 
 ## Acknowledgements
 
-<img id=euimg src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" style="margin-top:5px !important;"/>
+<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" id="euimg" width="80" style="margin-top:5px !important;"/>
 
 <div id="euimgdiv">
 

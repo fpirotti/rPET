@@ -11,7 +11,7 @@ output:
         html_document: 
           self_contained: yes
 ---
- 
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <!-- badges: start -->
@@ -23,7 +23,6 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![R-CMD-check](https://github.com/fpirotti/rPET/workflows/R-CMD-check/badge.svg)](https://github.com/fpirotti/rPET/actions)
 
 <!-- badges: end -->
- 
 
 The goal of rPET is to calculate Physiological Equivalent Temperature
 (PET) using as input measurements from sensors in the field and
@@ -48,33 +47,44 @@ For more info see [1-5]:
 
 Three air temperatures and wind speeds:
 
-```{r eval=FALSE}
-PETcorrected( Tair = 20, Tmrt=21, v=0, rh=20 )
+```{r }
+library(rPET)
 
-PETcorrected( Tair = 25, Tmrt=21, v=0.1, rh=20 )
+PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
+
+PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
 
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
 
 ```
 
-a faster way in vectorized format:
+a faster way in vectorized format, like
+running each row from table below:
 
-```{r eval=FALSE}
-PETcorrected( Tair = c(20,25,30), Tmrt=21, v_air=c(0, 0.1, 0.5), rh=20 )
+| Tair | Tmrt | v_air | rh  |
+|------|------|-------|-----|
+| 20   | 30   | 0     | 20  |
+| 25   | 30   | 1     | 20  |
+| 30   | 30   | 5     | 20  |:
+
+```{r}
+PETcorrected( Tair = c(20,25,30), Tmrt=30, v_air=c(0, 1, 5), rh=20 )
 ```
 
-All possible combinations of three values from four factors:
+All possible combinations of three values from three factors for a total of 
+27 combinations.
 
-```{r eval=FALSE}
+```{r}
 
 values <- expand.grid(
-            Tair = c(20,25,30), Tmrt = c(20,25,30),
-            wind_speed = c(0, 0.5, 1),
+            Tair = c(20,25,30), Tmrt = 30,
+            wind_speed = c(0, 1, 5),
             rh = c(10, 50, 70)
           )
 
 PETs <- PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt, 
               v_air=values$wind_speed, rh=values$rh )
+message(PETs)
 ```
 
 Plotting combinations of 10 values from two factors, Air Temperature and
@@ -113,11 +123,11 @@ title(main = "Estimated PET values ", font.main = 4)
 
 ## Mapping confort values
 
-If you have a Digital Terrain Model and a point cloud 3D model as XYZ format
-format, then you can simulate and map PET over the DTM grid nodes,
-simulating PET at the position of each node.
+If you have a Digital Terrain Model and a point cloud 3D model as XYZ
+format format, then you can simulate and map PET over the DTM grid
+nodes, simulating PET at the position of each node.
 
-NB: what changes is the Mean Radiant Temperature, which is estimated by 
+NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
 ```{r  eval=FALSE }
@@ -202,7 +212,6 @@ title( "30 °C - 50% RH ", cex.main = 1.2,   outer=F )
 
 ```
 
-
 <label>Below an animation of mapped comfort index changing over a hot
 summer day in Villa Bolasco. <img src="man/figures/gif_filePMV.gif"/>
 Solar illumination is simulated at points in space using a 3D model in
@@ -271,22 +280,20 @@ devtools::install_github("fpirotti/rPET")
     and adapted to point clouds. For more detail on point clouds see
     [Pirotti et al., 2022](https://doi.org/10.3390/fi14100280)
 
-
 ## Future work
 
-Using a classified point cloud (XYZC) with C=class value to calculate a more 
-sophisticated Tmrt estimation using long-wave radiation emissions from surfaces.
-
+Using a classified point cloud (XYZC) with C=class value to calculate a
+more sophisticated Tmrt estimation using long-wave radiation emissions
+from surfaces.
 
 ## Acknowledgements
 
-<img id=euimg src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" width="80" style="margin-top:5px !important;"/>
-<div  id=euimgdiv>
+<img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" id="euimg" width="80" style="margin-top:5px !important;"/>
+
+::: {#euimgdiv}
 This project has received funding from the European Union's Horizon 2020
 Research and Innovation programme, under grant agreement No 869505.
 <br>This page reflect only the authors' view and the European
 Commission/EASME is not responsible for any use that may be made of the
 information it contains.
-</div> 
-
- 
+:::
