@@ -12,7 +12,7 @@ output:
           self_contained: yes
 ---
 
-```{=html}
+```{html}
 <style>
 euimg { 
   float:left; 

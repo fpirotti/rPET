@@ -10,6 +10,7 @@ rPET - Physiological Equivalent Temperature
 - <a href="#acknowledgements"
   id="toc-acknowledgements">Acknowledgements</a>
 
+``` html
 <style>
 euimg { 
   float:left; 
@@ -20,6 +21,8 @@ euimgdiv {
   font-size: smaller;
 }
 </style>
+```
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
@@ -111,7 +114,7 @@ contour(x, y, interpolated, levels = seq(0, 40, by = 2),
 title(main = "Estimated PET values ", font.main = 4)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ## Mapping confort values
 
