@@ -6,6 +6,7 @@ rPET - Physiological Equivalent Temperature
   id="toc-mapping-confort-values">Mapping confort values</a>
 - <a href="#installation" id="toc-installation">Installation</a>
 - <a href="#references" id="toc-references">References</a>
+- <a href="#future-work" id="toc-future-work">Future work</a>
 - <a href="#acknowledgements"
   id="toc-acknowledgements">Acknowledgements</a>
 
@@ -112,11 +113,32 @@ title(main = "Estimated PET values ", font.main = 4)
 
 ## Mapping confort values
 
-If you have a Digital Terrain Model and a point cloud 3D model in LAS
-format, then you can simulate and map PET over the DTM grid nodes,
-simulating a stanading person at the position of each node.
+If you have a Digital Terrain Model and a point cloud 3D model as XYZ
+format format, then you can simulate and map PET over the DTM grid
+nodes, simulating PET at the position of each node.
 
-NB: what changes is the Mean Radiant
+NB: what changes is the Mean Radiant Temperature, which is estimated by
+using 3D data.
+
+``` r
+las.file <- "data-raw/voxel_villabolasco_light.laz"
+e<-environment(rPET::prepareData)
+if(is.null(e$dataenv) ||
+   !is.data.frame(e$dataenv$pointcloud)||
+   !inherits(e$dataenv$dtm, "PackedSpatRaster") ){
+  ret<-rPET::prepareData()
+  if(!ret) return(NULL)
+}
+```
+
+    ## Downloading Villa Bolasco Data using your Internet, should take less than a minute...
+
+``` r
+## read LAS data
+xyz<-  lidR::readLAS(las.file, select = "XYZ")
+## convert LAS data to XYZ table
+PointCloud3D<-xyz@data
+```
 
 <label>Below an animation of mapped comfort index changing over a hot
 summer day in Villa Bolasco. <img src="man/figures/gif_filePMV.gif"/>
@@ -182,6 +204,12 @@ devtools::install_github("fpirotti/rPET")
     target="_blank">tylermorganwal’s rayshader for R</a> and adapted to
     point clouds. For more detail on point clouds see [Pirotti et al.,
     2022](https://doi.org/10.3390/fi14100280)
+
+## Future work
+
+Using a classified point cloud (XYZC) with C=class value to calculate a
+more sophisticated Tmrt estimation using long-wave radiation emissions
+from surfaces.
 
 ## Acknowledgements
 

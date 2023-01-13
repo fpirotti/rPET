@@ -15,8 +15,8 @@ library(doParallel)
 ## doti <- function(heightgrid, pointcloud, sunelevation, sunangle)
 zscale<-1; sunelevation=90; sunangle=200; sunaltitude<-sunelevation;
 xyz<-  lidR::readLAS("data-raw/voxel_villabolasco_light.laz", select = "XYZ")
-pointcloud<-xyz@data
-PointCloud3D <- pointcloud
+PointCloud3D<-xyz@data
+pointcloud <- PointCloud3D
 # saveRDS(object = PointCloud3D, file="data-raw/pointcloud.rds")
 
 initDB <- function(){
@@ -129,30 +129,11 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=80){
 
     dvalues <- round(values[,1], 2)
     udvalues <- unique(dvalues)
-
-
-    # mrt<- ( (data$air_temperature+273.15)^4 + (0.082+ cos(insol::radians(sunaltitude))*0.308)*0.7*data$solar_radiation_wm2*udvalues/(0.97*5.67E-8) )^0.25 -273.15
     mrtv <- mrt(data$air_temperature,sunaltitude = sunaltitude,  data$solar_radiation_wm2, Fd = udvalues)
     bb <- rPET::PETcorrected(Tair = data$air_temperature, Tmrt =mrtv,
                              v_air = 0.1, rh = 50 )
 
     bb[ match(dvalues, udvalues) ]
-
-    # rs.pet <- terra::deepcopy( terra::rast(rast.shade) )
-    # rs.pet[ccc]<-NA
-    # rs.pet[ccc]<- pet.values
-
-    # par(mfrow=c(1,1))
-    # png("SET.png", width=1600, height=1600, res=300)
-    # terra::plot(rs.pet, col=viridis::turbo(12), range=c(-3,3))
-    # dev.off()
-    # png("SET.png", width=1600, height=1600, res=300)
-    #  terra::plot(rs.pet, col=viridis::turbo(12), range=c(28.5,36))
-    # dev.off()
-    #
-    #
-    # rs.pet[ccc]<-aa$Lraw
-    # terra::plot(rs.pet)
 
   }
 
@@ -290,21 +271,21 @@ makeplot2<-function(rs){
   }
   ss<- terra::spatSample(rs, 10000)
   message("Clamping")
-  qq <- quantile(ss, c(0.1,0.9), na.rm=TRUE)
+  # qq <- quantile(ss, c(0.1,0.9), na.rm=TRUE)
 
   nn<- terra::clamp(rs, 22, upper=45, values=TRUE)
   # browser()
   ii<-0
-  lapply(nn, function(i){
-    ii<<-ii+1
-    terra::plot(i,   col=viridis::turbo(12),
+  # lapply(nn, function(i){
+  foreach(ii = 1:length(nn)) %dopar% {
+    terra::plot(nn[[ii]], range=c(22,45),  col=viridis::turbo(12),
                 main=paste( dd4$tswtz[[ii]]) )
-  })
+  }
 }
 
 rs.pet.brick<-terra::rast("data-raw/outputrPET.tif")
 terra::plot(rs.pet.brick[[90]],   col=viridis::turbo(12) )
-save_gif(makeplot2(rs.pet.brick), "data-raw/gif_filePMV.gif",  delay = 0.1, loop = TRUE,  res = 144)
+save_gif(makeplot2(rs.pet.brick), "data-raw/gif_filePMV_fixed.gif",  delay = 0.1, loop = TRUE,  res = 144)
 
 e<-environment("package:rPET")
 
