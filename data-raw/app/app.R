@@ -65,6 +65,8 @@ solarApp <- function() {
 
     lsCond<- list() #comf::createCond()
     con <- initDB()
+
+    #browser()
     if(inherits(con, "PostgreSQLConnection")){
       if(is.null(dateTime)){
         dd2 <- RPostgreSQL::dbGetQuery(con,
@@ -81,25 +83,44 @@ solarApp <- function() {
             return(NULL)
           }
          dd2 <- RPostgreSQL::dbGetQuery(con,
-                                      sprintf('select  * from "public"."devices_parsed_stazione_meteo" WHERE tswtz >= \'%s\'::timestamp AND tswtz <  \'%s\'::timestamp  order by timestamp desc', dateTime2, dateTime2+1  )
+                                      sprintf('select  * from "public"."devices_parsed_stazione_meteo" WHERE tswtz >= \'%s\'::timestamp AND tswtz <  \'%s\'::timestamp  order by timestamp desc', dateTime2-1, dateTime2+1  )
                                       #'select * from "public"."devices_parsed_stazione_meteo" order by timestamp desc limit 1'
         )
 
 
       }
-      wm<-which.min( abs(difftime(dd2$tswtz, dateTime)))
-      dd<-dd2[ wm[[1]], ]
-
-      lsCond$ta<-dd$air_temperature
-      lsCond$trm<-dd$air_temperature
-      lsCond$rh<-dd$humidity
-      lsCond$tao<-dd$air_temperature
-      lsCond$rho<-dd$humidity
-      lsCond$vel<-dd$wind_speed
-      lsCond$solar_radiation_wm2 <- dd$solar_radiation_wm2
-      lsCond$pb <- dd$pressure_mb * 0.750062
-      print(lsCond)
       RPostgreSQL::dbDisconnect(con)
+      #browser()
+      #
+      wm<-which.min( abs(difftime(dd2$tswtz, dateTime)))
+      if(length(wm)==0){
+        shinyalert::shinyalert("No data from Villa Bolasco Weather station for the selected date. ")
+        lsCond$ta<-NA
+        lsCond$trm<-NA
+        lsCond$rh<-NA
+        lsCond$tao<-NA
+        lsCond$rho<-NA
+        lsCond$vel<-NA
+        lsCond$solar_radiation_wm2 <- NA
+        lsCond$pb <- NA
+      } else {
+        dd<-dd2[ wm[[1]], ]
+
+        shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
+                                         inputId = "bins", value=dd$tswtz)
+
+        lsCond$ta<-dd$air_temperature
+        lsCond$trm<-dd$air_temperature
+        lsCond$rh<-dd$humidity
+        lsCond$tao<-dd$air_temperature
+        lsCond$rho<-dd$humidity
+        lsCond$vel<-dd$wind_speed
+        lsCond$solar_radiation_wm2 <- dd$solar_radiation_wm2
+        lsCond$pb <- dd$pressure_mb * 0.750062
+      }
+
+
+
       return(lsCond)
     } else {
       return(NULL)
@@ -355,6 +376,7 @@ solarApp <- function() {
 
     updateData<-function(){
 
+      #browser()
       lsCond <<- getMeteoStation()
       lsCond$met<<-input$met
       lsCond$clo<<-input$clo

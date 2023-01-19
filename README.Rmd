@@ -52,9 +52,13 @@ library(rPET)
 options(digits=3)
 
 PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
+```
 
-PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
-
+Heavy clothing, cold (5°C) and in shade (no solar radiation) 
+```{r }
+PETcorrected( Tair = 5, Tmrt=5, v_air=0.1, rh=20, icl = 0  )
+```
+```{r }
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
 
 ```

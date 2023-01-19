@@ -87,7 +87,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
                      rh=NULL,
                      v_air=NULL,
                      M=NULL ,
-                     Icl=NULL ) {
+                     Icl=NULL, verbose=FALSE ) {
 
     if(is.null(tair)){
       if(verbose) warning("Air temperature not set in function, setting to 21 degrees C")
@@ -181,7 +181,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
     hc <- hc * `^`(p / po, 0.55) # Correction with pressure
 
     # Clothed fraction of the body approximation # ---
-    rcl <- icl / 6.45 # conversion in m2.K/W
+    # rcl <- icl / 6.45 # conversion in m2.K/W
 
     facl[facl > 1.0] <- 1.0
     rcl <- icl / 6.45 # conversion clo --> m2.K/W
@@ -422,9 +422,7 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
         } else{
           index <- j - 3
         }
-
         return( list(tc=tcore[,index], tsk=tsk, tcl=tcl, esw=esw))
-
       }
       warning("Should not arrive here p.1")
     }
@@ -545,9 +543,11 @@ PETcorrected <- function(Tair=21, Tmrt=21, v_air=0.1,
   }
 
 
+  # s <-  systemp(5, 5, 20, 0.1, 80, icl)
+  # pet.res <-  pet(tc = s$tc, tsk =  s$tsk, tcl =  s$tcl, ta_init = 5, esw_real = s$esw)
   # be<-  bench::bench_time( s<-  systemp(21, runif(20)*6 + 31) )
-  s <-  systemp(Tair, Tmrt, rh, v_air, M_activity, icl)
-  pet.res <-  pet(s$tc, s$tsk, s$tcl, Tair, s$esw)
+  s <-  systemp(Tair, Tmrt, rh, v_air, M_activity, icl, verbose=verbose)
+  pet.res <-  pet(tc = s$tc, tsk =  s$tsk, tcl =  s$tcl, ta_init = Tair, esw_real = s$esw)
 
   return(pet.res)
 }

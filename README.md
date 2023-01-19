@@ -53,11 +53,13 @@ PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
 
     ## [1] 21.5
 
+Heavy clothing, cold (5°C) and in shade (no solar radiation)
+
 ``` r
-PETcorrected( Tair = 25, Tmrt=21, v_air=0.1, rh=20 )
+PETcorrected( Tair = 5, Tmrt=5, v_air=0.1, rh=20, icl = 0  )
 ```
 
-    ## [1] 22.7
+    ## [1] 6.12
 
 ``` r
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
@@ -127,7 +129,7 @@ contour(x, y, interpolated, levels = seq(0, 40, by = 2),
 title(main = "Estimated PET values ", font.main = 4)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Mapping confort values
 
