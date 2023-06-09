@@ -296,7 +296,7 @@ from surfaces.
 <img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" id="euimg" width="80" style="margin-top:5px !important;"/>
 
 ::: {#euimgdiv}
-This project has received funding from the European Union's Horizon 2020
+This work is part of the (VARCITIES project)[https://www.varcities.eu], that has received funding from the European Union's Horizon 2020
 Research and Innovation programme, under grant agreement No 869505.
 <br>This page reflect only the authors' view and the European
 Commission/EASME is not responsible for any use that may be made of the

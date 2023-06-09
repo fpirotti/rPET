@@ -39,8 +39,8 @@ globals$maxheight <- NA
 #'of meters and the grid values are separated by 10 meters, `zscale` would be 10.
 #'@param multicore Default `FALSE`. If `TRUE`, multiple cores will be used to compute the shadow matrix. By default, this uses all cores available, unless the user has
 #'set `options("cores")` in which the multicore option will only use that many cores.
-#'@param height Default `1.5`. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.
-#'@param cache_mask Default `NULL`. Height from the ground plane for which to calculate the shade.
+#'@param height Default `1.5`. Height from the ground plane for which to calculate the shade.
+#'@param cache_mask Default `NULL`. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.
 #'@param shadow_cache Default `NULL`. The shadow matrix to be updated at the points defined by the argument `cache_mask`.
 #'If present, this will only compute the raytraced shadows for those points with value `1` in the mask.
 #'@param progbar Default `TRUE` if interactive, `FALSE` otherwise. If `FALSE`, turns off progress bar.
