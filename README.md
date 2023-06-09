@@ -298,11 +298,11 @@ from surfaces.
 
 <div id="euimgdiv">
 
-This work is part of the (VARCITIES
-project)\[<https://www.varcities.eu>\], that has received funding from
-the European Union’s Horizon 2020 Research and Innovation programme,
-under grant agreement No 869505. <br>This page reflect only the authors’
-view and the European Commission/EASME is not responsible for any use
-that may be made of the information it contains.
+This work is part of the [VARCITIES project](https://www.varcities.eu),
+that has received funding from the European Union’s Horizon 2020
+Research and Innovation programme, under grant agreement No 869505.
+<br>This page reflect only the authors’ view and the European
+Commission/EASME is not responsible for any use that may be made of the
+information it contains.
 
 </div>
