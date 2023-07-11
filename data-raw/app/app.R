@@ -14,6 +14,7 @@ solarApp <- function() {
   requireNamespace("magrittr", quietly = TRUE)
   requireNamespace("DBI", quietly = TRUE)
   e<-environment(rPET::prepareData)
+  options(warn =0)
   if(is.null(e$dataenv) ||
      !is.data.frame(e$dataenv$pointcloud)||
      !inherits(e$dataenv$dtm, "PackedSpatRaster") ){
@@ -25,7 +26,7 @@ solarApp <- function() {
   dtm <- terra::rast(e$dataenv$dtm)
   PointCloud3D <- e$dataenv$pointcloud
 
-  RET <-  rPET::ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE  )
+  RET <-  rPET::ray_shade(dtm, PointCloud3D, onlyprepare = TRUE, force = TRUE )
   if(is.null(RET)){
     message("Leaving web app as the data preparation did not go well...")
     return(NULL)
@@ -90,11 +91,11 @@ solarApp <- function() {
 
       }
       RPostgreSQL::dbDisconnect(con)
-      #browser()
-      #
+
       wm<-which.min( abs(difftime(dd2$tswtz, dateTime)))
       if(length(wm)==0){
-        shinyalert::shinyalert("No data from Villa Bolasco Weather station for the selected date. ")
+        # shinyalert::shinyalert("No data from Villa Bolasco Weather station for the selected date. ")
+
         lsCond$ta<-NA
         lsCond$trm<-NA
         lsCond$rh<-NA
@@ -413,6 +414,8 @@ solarApp <- function() {
       input$long
       },{
 
+        # browser()
+        req(input$bins)
         dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 1))
 
         sunposition <<- dd[1,]

@@ -51,9 +51,9 @@ of meters and the grid values are separated by 10 meters, \code{zscale} would be
 \item{multicore}{Default \code{FALSE}. If \code{TRUE}, multiple cores will be used to compute the shadow matrix. By default, this uses all cores available, unless the user has
 set \code{options("cores")} in which the multicore option will only use that many cores.}
 
-\item{height}{Default \code{1.5}. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.}
+\item{height}{Default \code{1.5}. Height from the ground plane for which to calculate the shade.}
 
-\item{cache_mask}{Default \code{NULL}. Height from the ground plane for which to calculate the shade.}
+\item{cache_mask}{Default \code{NULL}. A matrix of 1 and 0s, indicating which points on which the raytracer will operate.}
 
 \item{shadow_cache}{Default \code{NULL}. The shadow matrix to be updated at the points defined by the argument \code{cache_mask}.
 If present, this will only compute the raytraced shadows for those points with value \code{1} in the mask.}
