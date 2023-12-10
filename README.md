@@ -21,24 +21,25 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 <!-- badges: end -->
 
-The goal of rPET is to calculate Physiological Equivalent Temperature
-(PET) using as input measurements from sensors in the field and
-information on person position and characteristics. The following input
-can be used: - air temperature, - wind speed - sun radiation - relative
-humidity - age - clothing - metabolic rate (standing, walking, running
-etc..) - weight - height
+The goal of rPET is to calculate and map Physiological Equivalent
+Temperature (PET) using a 3d point cloud and measurements from sensors
+in the field and data on the metabolic characteristics of a person. The
+following input can be used: - air temperature, - wind speed - sun
+radiation - relative humidity - age - clothing - metabolic rate
+(standing, walking, running etc..) - weight - height
 
-An important component, mean radiant temperature (Tmrt), is estimated in
+Mean radiant temperature (Tmrt), a key component of PET, is estimated in
 this version in a simplified form, i.e. only considering direct and
 diffuse sunlight, without other surfaces that could be emitting
 long-wave radiation (i.e. heat).
 
-Environmental 3D information can be used as input in the form of a
-terrain model (a raster grid) and a 3D point cloud in the form of XYZ
-table. These information is used to infer the amount of direct/diffuse
-solar radiation reaching a person standing at each node of the raster
-grid, therefore providing Tmrt and the final PET value for that node.
-For more info see \[1-5\]:
+Mean radiant temperature can be mapped using environmental 3D
+information. The software can use a terrain model (a raster grid with
+height of ground) and a 3D point cloud in the form of an XYZ table.
+These information is used to infer the amount of direct/diffuse solar
+radiation reaching a person standing at each node of the raster grid,
+therefore providing Tmrt and the final PET value for that node. For more
+info see \[1-5\]:
 
 ## Usage
 
@@ -103,6 +104,12 @@ Plotting combinations of 10 values from two factors, Air Temperature and
 Wind Speed:
 
 ``` r
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+
 Tair_values <- (1:20)*2
 wind_speed_values <- (1:20)/4
 
@@ -129,7 +136,7 @@ contour(x, y, interpolated, levels = seq(0, 40, by = 2),
 title(main = "Estimated PET values ", font.main = 4)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
 
 ## Mapping confort values
 
@@ -141,6 +148,13 @@ NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
 ``` r
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+
 ## The LAS/LAZ file where the XYZ points are read
 # las.file <- "data-raw/voxel_villabolasco_light.laz"
 # dtm.file <- "data-raw/bolasco_DTM_1m.tif"

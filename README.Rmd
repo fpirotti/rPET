@@ -24,21 +24,22 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 <!-- badges: end -->
 
-The goal of rPET is to calculate Physiological Equivalent Temperature
-(PET) using as input measurements from sensors in the field and
-information on person position and characteristics. The following input
+The goal of rPET is to calculate and map Physiological Equivalent Temperature
+(PET) using a 3d point cloud and measurements from sensors in the field and
+data on the metabolic characteristics of a person. The following input
 can be used: - air temperature, - wind speed - sun radiation - relative
 humidity - age - clothing - metabolic rate (standing, walking, running
 etc..) - weight - height
 
-An important component, mean radiant temperature (Tmrt), is estimated in
+Mean radiant temperature (Tmrt), a key component of PET, is estimated in
 this version in a simplified form, i.e. only considering direct and
 diffuse sunlight, without other surfaces that could be emitting
 long-wave radiation (i.e. heat).
 
-Environmental 3D information can be used as input in the form of a
-terrain model (a raster grid) and a 3D point cloud in the form of XYZ
-table. These information is used to infer the amount of direct/diffuse
+Mean radiant temperature can be mapped using environmental 3D information. 
+The software can use a terrain model (a raster grid with height of ground) 
+and a 3D point cloud in the form of an XYZ table. These 
+information is used to infer the amount of direct/diffuse
 solar radiation reaching a person standing at each node of the raster
 grid, therefore providing Tmrt and the final PET value for that node.
 For more info see [1-5]:
@@ -54,30 +55,32 @@ options(digits=3)
 PETcorrected( Tair = 20, Tmrt=21, v_air =0, rh=20 )
 ```
 
-Heavy clothing, cold (5°C) and in shade (no solar radiation) 
+Heavy clothing, cold (5°C) and in shade (no solar radiation)
+
 ```{r }
 PETcorrected( Tair = 5, Tmrt=5, v_air=0.1, rh=20, icl = 0  )
 ```
+
 ```{r }
 PETcorrected( Tair = 30, Tmrt=21, v_air=0.5, rh=20 )
 
 ```
 
-a faster way in vectorized format, like
-running each row from table below:
+a faster way in vectorized format, like running each row from table
+below:
 
 | Tair | Tmrt | v_air | rh  |
 |------|------|-------|-----|
 | 20   | 30   | 0     | 20  |
 | 25   | 30   | 1     | 20  |
-| 30   | 30   | 5     | 20  |:
+| 30   | 30   | 5     | 20  |
 
 ```{r}
 PETcorrected( Tair = c(20,25,30), Tmrt=30, v_air=c(0, 1, 5), rh=20 )
 ```
 
-All possible combinations of three values from three factors for a total of 
-27 combinations.
+All possible combinations of three values from three factors for a total
+of 27 combinations.
 
 ```{r}
 
@@ -95,7 +98,14 @@ PETcorrected( Tair = values$Tair, Tmrt=values$Tmrt,
 Plotting combinations of 10 values from two factors, Air Temperature and
 Wind Speed:
 
-```{r }
+```{r fig.path="man/figures/README-"}
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+
 Tair_values <- (1:20)*2
 wind_speed_values <- (1:20)/4
 
@@ -136,6 +146,13 @@ NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
 ```{r  eval=FALSE }
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+
 ## The LAS/LAZ file where the XYZ points are read
 # las.file <- "data-raw/voxel_villabolasco_light.laz"
 # dtm.file <- "data-raw/bolasco_DTM_1m.tif"
@@ -296,7 +313,8 @@ from surfaces.
 <img src="https://www.varcities.eu/wp-content/uploads/2020/11/eu-flag.jpg" id="euimg" width="80" style="margin-top:5px !important;"/>
 
 ::: {#euimgdiv}
-This work is part of the [VARCITIES project](https://www.varcities.eu), that has received funding from the European Union's Horizon 2020
+This work is part of the [VARCITIES project](https://www.varcities.eu),
+that has received funding from the European Union's Horizon 2020
 Research and Innovation programme, under grant agreement No 869505.
 <br>This page reflect only the authors' view and the European
 Commission/EASME is not responsible for any use that may be made of the
