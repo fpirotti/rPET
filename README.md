@@ -104,12 +104,6 @@ Plotting combinations of 10 values from two factors, Air Temperature and
 Wind Speed:
 
 ``` r
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
-)
-
 Tair_values <- (1:20)*2
 wind_speed_values <- (1:20)/4
 
@@ -148,7 +142,6 @@ NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
 ``` r
-
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
