@@ -21,7 +21,7 @@
 #' @examples
 #' mrt(air_temperature=21, sunaltitude=50, solar_radiation_wm2=100  )
 mrt <- function(air_temperature, sunaltitude, solar_radiation_wm2, Fd=1) {
-  ( (air_temperature+273.15)^4 + (0.082+ cos(insol::radians(sunaltitude))*0.308)*0.7*solar_radiation_wm2*Fd/(0.97*5.67E-8) )^0.25 -273.15
+  ( (air_temperature+273.15)^4 + (0.082+ cos(radians(sunaltitude))*0.308)*0.7*solar_radiation_wm2*Fd/(0.97*5.67E-8) )^0.25 -273.15
 }
 
 
