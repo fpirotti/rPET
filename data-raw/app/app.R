@@ -383,7 +383,7 @@ solarApp <- function() {
       lsCond$clo<<-input$clo
       shinyWidgets::updateAirDateInput(session = shiny::getDefaultReactiveDomain(),
                                        inputId = "bins", value=Sys.time())
-      sunposition<<-insol::sunpos(insol::sunvector(insol::JD(Sys.time()), input$lat, input$long, 1))[1,]
+      sunposition<<-sunpos(sunvector(JD(Sys.time()), input$lat, input$long, 1))[1,]
 
       shiny::updateNumericInput(inputId = "forceSunElev",value = round(sunposition[[2]]) )
       shiny::updateNumericInput(inputId = "forceSunAngle",value = round(sunposition[[1]]) )
@@ -416,7 +416,7 @@ solarApp <- function() {
 
         # browser()
         req(input$bins)
-        dd<-insol::sunpos(insol::sunvector(insol::JD(input$bins), input$lat, input$long, 1))
+        dd<-sunpos(sunvector(JD(input$bins), input$lat, input$long, 1))
 
         sunposition <<- dd[1,]
         lsCond <<- getMeteoStation(input$bins )
@@ -589,15 +589,15 @@ solarApp <- function() {
             length = 2,
             by = '1 day')[2]
 
-      days = insol::JD(seq(as.POSIXct(as.Date(input$bins)),
+      days = JD(seq(as.POSIXct(as.Date(input$bins)),
                            as.POSIXct(as.Date(dayafter)), by =  'min'))
       sh<-seq(as.POSIXct(as.Date(input$bins)), as.POSIXct(as.Date(dayafter)), by =  'hour')
       sh.lab <- format(sh, "%H:00")
-      hours <- insol::JD(sh)
+      hours <- JD(sh)
 
       sp <- sunposition
-      sps <-  insol::sunpos(insol::sunvector(days, input$lat, input$long, 1))
-      sps.h <-  insol::sunpos(insol::sunvector(hours, input$lat, input$long, 1))
+      sps <-  sunpos(sunvector(days, input$lat, input$long, 1))
+      sps.h <-  sunpos(sunvector(hours, input$lat, input$long, 1))
       sps <- sps[ sps[, "zenith"]>0 & sps[, "zenith"] < 90, ]
 
       sps.h.w <- sps.h[, "zenith"]>0 & sps.h[, "zenith"] < 90
@@ -612,7 +612,7 @@ solarApp <- function() {
         radial.lim = seq(0, 90, 30),
         radial.labels = c("0°", "30°", "60°", "90°"),
         clockwise = TRUE,
-        label.pos=  insol::radians(seq(0, 360, 45)) ,
+        label.pos=  radians(seq(0, 360, 45)) ,
         labels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"),
         rp.type = 's',
         cex=0.1

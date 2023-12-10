@@ -1,5 +1,4 @@
 library(terra)
-library(insol)
 library(lidR)
 library(rPET)
 library(data.table)
@@ -63,7 +62,7 @@ makeplot <- function(datec="2022-08-03", cutoffZenith=80){
     }
   }
 
-  dd <- data.frame(insol::sunpos(insol::sunvector(insol::JD(ss), 46, 11.9701, 0)))
+  dd <- data.frame(sunpos(sunvector(JD(ss), 46, 11.9701, 0)))
   dd$date <- ss
   dd2<- data.table(dd[dd$zenith<cutoffZenith,])
   dd3 <- dd2[as.integer(rownames(dd2))%%5==0, ]
