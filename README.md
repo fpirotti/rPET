@@ -17,7 +17,7 @@ rPET - Physiological Equivalent Temperature
 status](https://www.r-pkg.org/badges/version/rPET)](https://CRAN.R-project.org/package=rPET)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![R-CMD-check](https://github.com/fpirotti/rPET/workflows/R-CMD-check/badge.svg)](https://github.com/fpirotti/rPET/actions)
+[![R-CMD-check](https://github.com/fpirotti/rPET/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/fpirotti/rPET/actions/workflows/check-standard.yaml)
 
 <!-- badges: end -->
 
