@@ -139,13 +139,8 @@ nodes, simulating PET at the position of each node.
 NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
-```{r  eval=FALSE }
+```{r  eval=FALSE, fig.path = "man/figures/README-" }
 
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
-)
 
 ## The LAS/LAZ file where the XYZ points are read
 # las.file <- "data-raw/voxel_villabolasco_light.laz"

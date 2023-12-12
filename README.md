@@ -142,12 +142,6 @@ NB: what changes is the Mean Radiant Temperature, which is estimated by
 using 3D data.
 
 ``` r
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
-)
-
 ## The LAS/LAZ file where the XYZ points are read
 # las.file <- "data-raw/voxel_villabolasco_light.laz"
 # dtm.file <- "data-raw/bolasco_DTM_1m.tif"
